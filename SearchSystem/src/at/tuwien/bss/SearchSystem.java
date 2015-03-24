@@ -17,14 +17,18 @@ public class SearchSystem {
 	public SearchSystem() {
 		documentCollection = new DocumentCollection();
 		
-		log(System.getProperty("user.dir"));
+		log("Current Working Dir: "+System.getProperty("user.dir"));
 		
+		// documents are placed in the subset folder
 		documentCollection.importFolder(".\\..\\..\\subset");
 		
 		log("imported "+documentCollection.getCount()+" documents");
 	}
 	
 	private void test() {
+		
+		// test parser by parse document with ID 0
+		
 		Parser p = new Parser();
 		
 		ArrayList<String> terms = null;
@@ -34,6 +38,8 @@ public class SearchSystem {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+		
+		// write out terms
 		
 		log("Terms:");
 		for (String t : terms) {

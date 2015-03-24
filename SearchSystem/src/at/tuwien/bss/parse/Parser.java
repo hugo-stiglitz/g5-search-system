@@ -9,15 +9,19 @@ public class Parser {
 	
 	public ArrayList<String> parse(String input) {
 		
-		ArrayList<String> result = new ArrayList<String>();
+		ArrayList<String> result;
 		
+		// Tokenize input		
 		result = tokenizer.tokenize(input);
 		
+		// Normalize every token
 		for (int i=0; i<result.size(); i++) {
 			String token = result.get(i);
 			String term = normalizer.normalize(token);
 			result.set(i, term);
 		}
+		
+		// TODO: make sure each token is only present once (or is this the indexer's job?)
 		
 		return result;
 	}

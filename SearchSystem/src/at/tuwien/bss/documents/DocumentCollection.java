@@ -11,6 +11,10 @@ public class DocumentCollection {
 	public DocumentCollection() {
 	}
 	
+	/**
+	 * Import all files in the given directory and all subdirectories into this collection
+	 * @param folderPath Path to the folter to import
+	 */
 	public void importFolder(String folderPath) {
 		File root = new File(folderPath);
 		
