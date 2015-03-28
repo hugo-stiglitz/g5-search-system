@@ -1,5 +1,8 @@
 package at.tuwien.bss.parse;
 
-public interface Segmenter {
+import java.util.List;
 
+public interface Segmenter {
+	
+	List<String> segment(String term);
 }

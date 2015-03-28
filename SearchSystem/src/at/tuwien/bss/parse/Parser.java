@@ -22,6 +22,7 @@ public class Parser {
 		}
 		
 		// TODO: make sure each token is only present once (or is this the indexer's job?)
+		// XXX: indexers job ;) indexer needs term frequency of document...
 		
 		return result;
 	}
