@@ -17,6 +17,7 @@ public class Parser {
 		// Normalize every token
 		for (int i=0; i<result.size(); i++) {
 			String token = result.get(i);
+			//TODO stoplist
 			String term = normalizer.normalize(token);
 			result.set(i, term);
 		}

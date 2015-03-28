@@ -4,7 +4,7 @@ import java.util.ArrayList;
 
 public class Tokenizer {
 	// Delimiters which end a token
-	static final char[] delimiters = new char[] { ' ', '.', '?', '!', ':', ';', '/', '-', '(', ')', '[', ']', '{', '}', '<', '>', '\t', '\n', '\r' };
+	static final char[] delimiters = new char[] { ' ', ',', '.', '?', '!', ':', ';', '/', '-', '(', ')', '[', ']', '{', '}', '<', '>', '\t', '\n', '\r' };
 	
 	/**
 	 * Generates a List of Tokens from the input String

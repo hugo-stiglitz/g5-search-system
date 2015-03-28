@@ -44,29 +44,29 @@ public class PostingsList {
 		Posting newPosting = new Posting(documentId);
 		posting.setNextPosting(newPosting);
 		documentFrequency++;
-		
+
 	}
-	
+
 	public void createSkipList() {
 		//TODO create skip list after list is completed
 	}
-	
-	
-	
-public String print() {
-		
+
+
+
+	public String print() {
+
 		StringBuilder sb = new StringBuilder();
-		
+
 		Posting posting = firstPosting;
-		
+
 		sb.append("doc"+ posting.getDocumentId() +" (tf: "+ posting.getTermFrequency() +"), ");
-		
+
 		while(posting.hasNext()) {
-			
+
 			posting = posting.next();
 			sb.append("doc"+ posting.getDocumentId() +" (tf: "+ posting.getTermFrequency() +"), ");
 		}
-		
+
 		return sb.toString();
 	}
 }

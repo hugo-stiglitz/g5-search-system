@@ -15,6 +15,5 @@ public class Normalizer {
 		token = porter.stripAffixes(token);
 		
 		return token;
-		
 	}
 }

@@ -11,7 +11,7 @@ public class Index {
 	 * add a term to the postings list
 	 * @param term
 	 */
-	public final void add(String term, int documentId) {
+	public void add(String term, int documentId) {
 
 		//term already exists in list
 		if(indexMap.containsKey(term)) {
@@ -24,8 +24,13 @@ public class Index {
 			indexMap.put(term, postingsList);
 		}
 	}
+	
+	public PostingsList getPostingsList(String term) {
+		//TODO check if exists necessary??
+		return indexMap.get(term);
+	}
 
-	public final String print() {
+	public String print() {
 		
 		StringBuilder sb = new StringBuilder();
 		
