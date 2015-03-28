@@ -5,13 +5,13 @@ import java.util.List;
 import at.tuwien.bss.parse.Segmenter;
 import at.tuwien.bss.parse.SegmenterBi;
 
-public class IndexBi extends Index {
+public class IndexerBi extends Indexer {
 
 	private Segmenter segmenter = new SegmenterBi();
 
 	@Override
-	public List<String> segment(String term) {
-		return segmenter.segment(term);
+	public List<String> segment(List<String> terms) {
+		return segmenter.segment(terms);
 	}
 
 }

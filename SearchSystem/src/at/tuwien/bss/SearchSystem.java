@@ -4,8 +4,9 @@ import java.io.IOException;
 import java.util.ArrayList;
 
 import at.tuwien.bss.documents.DocumentCollection;
-import at.tuwien.bss.index.EnumIndexingType;
 import at.tuwien.bss.index.Indexer;
+import at.tuwien.bss.index.IndexerBag;
+import at.tuwien.bss.index.IndexerBi;
 import at.tuwien.bss.parse.Parser;
 
 public class SearchSystem {
@@ -32,7 +33,7 @@ public class SearchSystem {
 		// test parser by parse document with ID 0, 1, 2
 		
 		Parser parser = new Parser();
-		Indexer indexerBoW = new Indexer(EnumIndexingType.BOW);
+		Indexer indexerBoW = new IndexerBi();
 		
 		for(int i = 0; i < 10; i++) {
 			ArrayList<String> terms = null;
@@ -50,10 +51,7 @@ public class SearchSystem {
 				log(t);
 			}
 
-
-			for(String t : terms) {
-				indexerBoW.add(t, i);
-			}
+			indexerBoW.add(terms, i);
 		}
 
 		log("******************************************");

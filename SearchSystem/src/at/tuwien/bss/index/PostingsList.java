@@ -1,7 +1,5 @@
 package at.tuwien.bss.index;
 
-import java.util.Iterator;
-
 public class PostingsList {
 
 	private Posting firstPosting;
@@ -61,12 +59,12 @@ public String print() {
 		
 		Posting posting = firstPosting;
 		
-		sb.append("doc"+ posting.getDocumentId() +" (df: "+ posting.getTermFrequency() +"), ");
+		sb.append("doc"+ posting.getDocumentId() +" (tf: "+ posting.getTermFrequency() +"), ");
 		
 		while(posting.hasNext()) {
 			
 			posting = posting.next();
-			sb.append("doc"+ posting.getDocumentId() +" (df: "+ posting.getTermFrequency() +"), ");
+			sb.append("doc"+ posting.getDocumentId() +" (tf: "+ posting.getTermFrequency() +"), ");
 		}
 		
 		return sb.toString();

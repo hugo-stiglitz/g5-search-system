@@ -1,18 +1,20 @@
 package at.tuwien.bss.index;
 
-public class Indexer {
+import java.util.List;
+
+public abstract class Indexer {
 	
-	private EnumIndexingType type;
-	private Index index;
+	private Index index = new Index();
 	
-	public Indexer(EnumIndexingType type) {
+	public abstract List<String> segment(List<String> terms);
+	
+	
+	public void add(List<String> terms, int documentId) {
 		
-		this.type = type;
-		index = type.getIndex();
-	}
-	
-	public void add(String fullTerm, int documentId) {
-		index.add(fullTerm, documentId);
+		List<String> segmentedTerms = segment(terms);
+		for(String term : segmentedTerms) {
+			index.add(term, documentId);
+		}
 	}
 	
 	public Index getIndex() {
