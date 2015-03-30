@@ -1,65 +1,52 @@
 package at.tuwien.bss.search;
 
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
-import java.util.TreeSet;
 
 import javafx.util.Pair;
 import at.tuwien.bss.index.IdfTf;
 import at.tuwien.bss.index.Index;
-import at.tuwien.bss.index.PostingsList;
 import at.tuwien.bss.logging.SSLogger;
 
 public class Searcher {
 	
 	private static final SSLogger LOGGER = SSLogger.getLogger();
 
-	public int[] search(List<String> queryTerms, Index index) {
-		
-		LOGGER.logTime("START SEARCH");
-		
-		TreeSet<PostingsList> postingsListSet = new TreeSet<PostingsList>();
-		
-		for(String term : queryTerms) {
-			postingsListSet.add(index.getPostingsList(term));
-		}
-		
-		/*
-		// LOW LEVEL LOGGING
-		for(PostingsList pl : postingsListSet) {
-			LOGGER.log(pl.getTerm() +" ("+ pl.getDocumentFrequency() +"x): "+ pl.print());
-		}
-		*/
+	public DocumentScore[] search(List<String> queryTerms, Index index) {
 		
 		//TODO remove all terms with document frequency 0
 		
 		//calculate the sum of idf-tf for each document (over all terms in query)
 		LOGGER.logTime("START CALCULATING DOCUMENT VALUES");
 		
-		Map<Pair<Integer,String>, IdfTf> idfTfMap = index.getIdfTfMap();
+		Map<Pair<Integer,String>, IdfTf> idfTfMap = new HashMap<Pair<Integer,String>, IdfTf>();
 		Map<Integer, IdfTf> documentIdfTfMap = new HashMap<Integer, IdfTf>();
 		
-		Set<Pair<Integer,String>> keySet = idfTfMap.keySet();
-		Iterator<Pair<Integer,String>> it = keySet.iterator();
-		while(it.hasNext()) {
-
-			Pair<Integer, String> key = it.next();
+		//get idf-tf's of terms in search query
+		for(String term : queryTerms) {
+			Map<Integer,IdfTf> tmpMap = index.getIdfTf(term);
+			for(Integer documentId : tmpMap.keySet()) {
+				idfTfMap.put(new Pair<Integer,String>(documentId, term), tmpMap.get(documentId));
+			}
+		}
+		
+		//sum up all (the queries terms) idf-tf's of a document
+		for(Pair<Integer,String> key : idfTfMap.keySet()) {
+			
+			Integer documentId = key.getKey();
 			IdfTf idfTf = idfTfMap.get(key);
-
+			
 			/*
 			// LOW LEVEL LOGGING
-			LOGGER.log("Term: "+ key.getValue() +" / DocID: "+ key.getKey() +"\t -- value: "+ value);
+			LOGGER.log("Term: "+ key.getValue() +" / DocID: "+ documentId +"\t -- value: "+ idfTf);
 			*/
 
-			Integer term = key.getKey();
-			if(documentIdfTfMap.containsKey(term)) {
-				documentIdfTfMap.put(term, IdfTf.sum(documentIdfTfMap.get(term), idfTf));
+			if(documentIdfTfMap.containsKey(documentId)) {
+				documentIdfTfMap.put(documentId, IdfTf.sum(documentIdfTfMap.get(documentId), idfTf));
 			}
 			else {
-				documentIdfTfMap.put(term, idfTf);
+				documentIdfTfMap.put(documentId, idfTf);
 			}
 		}
 
@@ -67,22 +54,31 @@ public class Searcher {
 		
 		//TODO define threshold and filter documents (or terms?)
 
-		
+		/*
 		// LOW LEVEL LOGGING
-		Set<Integer> keySet2 = documentIdfTfMap.keySet();
-		Iterator<Integer> it2 = keySet2.iterator();
-		while(it2.hasNext()) {
-			Integer key = it2.next();
+		for(Integer key : documentIdfTfMap.keySet()) {
 			IdfTf value = documentIdfTfMap.get(key);
 			
 			LOGGER.log("Document: "+ key +"\t -- value: "+ value);
 		}
+		*/
 		
 		
 		//TODO score documents
 		
 		//TODO rank first 10 documents with heap-sort
+		//XXX test ranking with idf-tf
+		DocumentScore[] scoreArray = new DocumentScore[documentIdfTfMap.size()];
+		int i = 0;
+		for(Integer key : documentIdfTfMap.keySet()) {
+			scoreArray[i] = new DocumentScore(key, documentIdfTfMap.get(key).getIdfTf());
+			i++;
+		}
 		
-		return new int[10];
+		LOGGER.logTime("START SORTING");
+		HeapSort.heapSort(scoreArray, 10);
+		LOGGER.logTime("SORTED");
+		
+		return scoreArray;
 	}
 }

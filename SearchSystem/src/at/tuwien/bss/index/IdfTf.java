@@ -28,7 +28,7 @@ public class IdfTf {
 	public double getTermFrequency() { return termFrequency; }
 	public double getIdfTf() {
 		//TODO weighting of idf and tf
-		return inverseDocumentFrequency * termFrequency;
+		return inverseDocumentFrequency + termFrequency;
 	}
 	
 	//TODO fix method!!

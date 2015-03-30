@@ -69,4 +69,17 @@ public class Index {
 		
 		return sb.toString();
 	}
+
+	public Map<Integer, IdfTf> getIdfTf(String term) {
+		
+		Map<Integer, IdfTf> resultMap = new HashMap<Integer, IdfTf>();
+		
+		for(Pair<Integer,String> key : idfTfMap.keySet()) {
+			if(key.getValue().equals(term)) {
+				resultMap.put(key.getKey(), idfTfMap.get(key));
+			}
+		}
+		
+		return resultMap;
+	}
 }

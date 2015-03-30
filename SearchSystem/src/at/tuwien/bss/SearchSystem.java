@@ -11,6 +11,7 @@ import at.tuwien.bss.logging.SSLogger;
 import at.tuwien.bss.parse.Parser;
 import at.tuwien.bss.parse.Segmenter;
 import at.tuwien.bss.parse.SegmenterBag;
+import at.tuwien.bss.search.DocumentScore;
 import at.tuwien.bss.search.Searcher;
 
 public class SearchSystem {
@@ -44,8 +45,8 @@ public class SearchSystem {
 		Parser parser = new Parser();
 		Indexer indexerBoW = new IndexerBag();
 		
-		for(int i = 0; i < documentCollection.getCount(); i++) {
-		//for(int i = 0; i < 10; i++) {
+		//for(int i = 0; i < documentCollection.getCount(); i++) {
+		for(int i = 0; i < 11; i++) {
 
 			try {
 				List<String> terms = parser.parse(documentCollection.getContent(i));
@@ -67,14 +68,23 @@ public class SearchSystem {
 
 		//LOGGER.log(indexerBoW.getIndex().print());
 		
-		String searchQuery = "i want to, buy a-new computer!";
+		//String searchQuery = "astronomy club sci space GPS uucp";		//good result: sci.space/62317
+		String searchQuery = "hello i want to buy a computer";
+		
+		LOGGER.logTime("START SEARCH");
 		
 		List<String> queryTerms = parser.parse(searchQuery);
 		Segmenter segmenter = new SegmenterBag();
 		queryTerms = segmenter.segment(queryTerms);
 		
 		Searcher searcher = new Searcher();
-		int[] topDocumentIds = searcher.search(queryTerms, indexerBoW.getIndex());
+		DocumentScore[] scoreArray = searcher.search(queryTerms, indexerBoW.getIndex());
+		
+		LOGGER.logTime("SEARCH FINISHED");
+		
+		for(int j = 0; j < 10; j++) {
+			LOGGER.log(documentCollection.getPath(scoreArray[j].getDocumentId()) +" --- "+ scoreArray[j]);
+		}
 	}
 
 	private DocumentCollection documentCollection = new DocumentCollection();
