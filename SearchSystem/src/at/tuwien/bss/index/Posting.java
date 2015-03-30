@@ -21,7 +21,7 @@ public class Posting {
 	public int getDocumentId() { return documentId; }
 	
 	public void incrementTermFrequency() { termFrequency++; }
-	public int getTermFrequency() { return termFrequency; }
+	public int getTermCount() { return termFrequency; }
 	
 	public void setNextPosting(Posting nextPosting) { this.nextPosting = nextPosting; }
 	private Posting getNextPosting() { return nextPosting; }

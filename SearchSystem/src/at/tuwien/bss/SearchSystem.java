@@ -1,7 +1,7 @@
 package at.tuwien.bss;
 
 import java.io.IOException;
-import java.util.ArrayList;
+import java.util.List;
 
 import at.tuwien.bss.documents.DocumentCollection;
 import at.tuwien.bss.index.Indexer;
@@ -9,6 +9,9 @@ import at.tuwien.bss.index.IndexerBag;
 import at.tuwien.bss.index.IndexerBi;
 import at.tuwien.bss.logging.SSLogger;
 import at.tuwien.bss.parse.Parser;
+import at.tuwien.bss.parse.Segmenter;
+import at.tuwien.bss.parse.SegmenterBag;
+import at.tuwien.bss.search.Searcher;
 
 public class SearchSystem {
 	
@@ -36,27 +39,42 @@ public class SearchSystem {
 		
 		// test parser by parse document with ID 0 - 10
 		
-		LOGGER.logTime("START");
+		LOGGER.logTime("START INDEXING");
 		
 		Parser parser = new Parser();
 		Indexer indexerBoW = new IndexerBag();
 		
 		for(int i = 0; i < documentCollection.getCount(); i++) {
-			
+		//for(int i = 0; i < 10; i++) {
+
 			try {
-				ArrayList<String> terms = parser.parse(documentCollection.getContent(i));
-				LOGGER.logTime("document "+ i +" parsed");
+				List<String> terms = parser.parse(documentCollection.getContent(i));
 				indexerBoW.add(terms, i);
+				
+				/*
+				// LOW LEVEL LOGGING
 				LOGGER.logTime("document "+ i +" indexed");
+				*/
 			
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
 		}
 		
-		LOGGER.logTime("FINISH");
+		LOGGER.logTime("INDEXING FINISHED");
+		
+		indexerBoW.calculateIdfTf();
 
 		//LOGGER.log(indexerBoW.getIndex().print());
+		
+		String searchQuery = "i want to, buy a-new computer!";
+		
+		List<String> queryTerms = parser.parse(searchQuery);
+		Segmenter segmenter = new SegmenterBag();
+		queryTerms = segmenter.segment(queryTerms);
+		
+		Searcher searcher = new Searcher();
+		int[] topDocumentIds = searcher.search(queryTerms, indexerBoW.getIndex());
 	}
 
 	private DocumentCollection documentCollection = new DocumentCollection();
