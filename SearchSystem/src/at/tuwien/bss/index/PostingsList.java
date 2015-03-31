@@ -6,18 +6,22 @@ public class PostingsList implements Comparable<PostingsList>, Iterable<Posting>
 
 	private Posting firstPosting;
 	private int documentFrequency;
-	private int count;
-	
+
 	public PostingsList() {
 		
 		firstPosting = null;
 		documentFrequency = 0;
-		count = 0;
 	}
 	
 	public int getDocumentFrequency() { return documentFrequency; }
 	private void incrementDocumentFrequency() { documentFrequency++; }
-	public int getCount() { return count; }
+
+	private Posting createNewPosting(int documentId) {
+		Posting posting = new Posting(documentId);
+		incrementDocumentFrequency();
+		
+		return posting;
+	}
 	
 	/**
 	 * add a posting to the list or just increment the term frequency (if document already in list)
@@ -30,7 +34,7 @@ public class PostingsList implements Comparable<PostingsList>, Iterable<Posting>
 		
 		if (posting == null) {
 			// no postings yet
-			posting = new Posting(documentId);
+			posting = createNewPosting(documentId);
 			firstPosting = posting;
 		}
 		else {
@@ -46,8 +50,8 @@ public class PostingsList implements Comparable<PostingsList>, Iterable<Posting>
 				if (posting.getDocumentId() < documentId) {
 					// the docId is smaller --> insert new Posting here
 					
-					Posting newPosting = new Posting(documentId);
-					
+					Posting newPosting = createNewPosting(documentId);
+
 					// connect to last posting
 					if (lastPosting == null) {
 						// insert as first item in the list
@@ -70,15 +74,13 @@ public class PostingsList implements Comparable<PostingsList>, Iterable<Posting>
 			
 			if (posting == null) {
 				// all postings in the list had a greater docId --> insert new Posting at the end
-				posting = new Posting(documentId);
+				posting = createNewPosting(documentId);
 				lastPosting.setNextPosting(posting);
 			}
 		}
 		
 		// do increment stuff
 		posting.incrementTermFrequency();
-		incrementDocumentFrequency();
-		count++;
 	}
 
 	public void createSkipList() {
