@@ -30,15 +30,19 @@ public class DocumentCollection {
                 documentPaths.add(f.getAbsolutePath());
             }
         }
-		
 	}
 	
 	private ArrayList<String> documentPaths = new ArrayList<String>();
 	
 	public int getCount() { return documentPaths.size(); }
 	
-	public String getPath(int documentId) {
+	private String getPath(int documentId) {
 		return documentPaths.get(documentId);
+	}
+	
+	public String getName(int documentId) {
+		File f = new File(getPath(documentId));
+		return f.getParentFile().getName()+"/"+f.getName();
 	}
 	
 	public String getContent(int documentId) throws IOException {

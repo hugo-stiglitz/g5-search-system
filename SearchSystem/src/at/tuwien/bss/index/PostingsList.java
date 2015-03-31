@@ -1,34 +1,23 @@
 package at.tuwien.bss.index;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Iterator;
 
-public class PostingsList implements Comparable<PostingsList> {
+public class PostingsList implements Comparable<PostingsList>, Iterable<Posting> {
 
-	private String term;
 	private Posting firstPosting;
 	private int documentFrequency;
+	private int count;
 	
-	public PostingsList(String term) {
+	public PostingsList() {
 		
-		this.term = term;
 		firstPosting = null;
 		documentFrequency = 0;
+		count = 0;
 	}
 	
-	/**
-	 * creates a new postings-list and creates a new posting belonging to the document-id
-	 * @param documentId
-	 */
-	public PostingsList(String term, int documentId) {
-		
-		this.term = term;
-		firstPosting = new Posting(documentId);
-		documentFrequency = 1;
-	}
-	
-	public int getDocumentCount() { return documentFrequency; }
-	public String getTerm() { return term; }
+	public int getDocumentFrequency() { return documentFrequency; }
+	private void incrementDocumentFrequency() { documentFrequency++; }
+	public int getCount() { return count; }
 	
 	/**
 	 * add a posting to the list or just increment the term frequency (if document already in list)
@@ -39,65 +28,72 @@ public class PostingsList implements Comparable<PostingsList> {
 		//check if document already in list
 		Posting posting = firstPosting;
 		
-		if(posting.getDocumentId() == documentId) {
-			posting.incrementTermFrequency();
-			return;
+		if (posting == null) {
+			// no postings yet
+			posting = new Posting(documentId);
+			firstPosting = posting;
 		}
-		
-		while(posting.hasNext()) {
-			posting = posting.next();
+		else {
 			
-			if(posting.getDocumentId() == documentId) {
-				posting.incrementTermFrequency();
-				return;
+			Posting lastPosting = null;
+			while(posting != null) {
+				
+				if(posting.getDocumentId() == documentId) {
+					// posting found --> break
+					break;
+				}
+				
+				if (posting.getDocumentId() < documentId) {
+					// the docId is smaller --> insert new Posting here
+					
+					Posting newPosting = new Posting(documentId);
+					
+					// connect to last posting
+					if (lastPosting == null) {
+						// insert as first item in the list
+						firstPosting = newPosting;
+					}
+					else {
+						lastPosting.setNextPosting(newPosting);
+					}
+					
+					// connect next posting
+					newPosting.setNextPosting(posting);
+					
+					posting = newPosting;
+					break;
+				}
+				
+				lastPosting = posting;
+				posting = posting.getNextPosting();
+			}
+			
+			if (posting == null) {
+				// all postings in the list had a greater docId --> insert new Posting at the end
+				posting = new Posting(documentId);
+				lastPosting.setNextPosting(posting);
 			}
 		}
 		
-		//document not in list yet
-		Posting newPosting = new Posting(documentId);
-		posting.setNextPosting(newPosting);
-		documentFrequency++;
-
+		// do increment stuff
+		posting.incrementTermFrequency();
+		incrementDocumentFrequency();
+		count++;
 	}
 
 	public void createSkipList() {
 		//TODO create skip list after list is completed
 	}
 
-	public List<Posting> getPostings() {
-
-		List<Posting> result = new ArrayList<Posting>();
-
-		Posting posting = firstPosting;
-
-		if(posting != null) {
-
-			result.add(posting);
-			while(posting.hasNext()) {
-				posting = posting.next();
-				result.add(posting);
-			}
-		}
-		
-		return result;
-	}
-
 	public String print() {
 
 		StringBuilder sb = new StringBuilder();
 
-		Posting posting = firstPosting;
-
-		if(posting != null) {
-			sb.append("doc"+ posting.getDocumentId() +" (tf: "+ posting.getTermCount() +"), ");
-
-			while(posting.hasNext()) {
-				
-				posting = posting.next();
-				sb.append("doc"+ posting.getDocumentId() +" (tf: "+ posting.getTermCount() +"), ");
-			}
+		for (Posting posting : this) {
+			sb.append("doc"+ posting.getDocumentId() +" (tf: "+ posting.getTermFrequency() +"), ");
 		}
-		else {
+		
+		if (count == 0) {
 			sb.append("empty");
 		}
 
@@ -107,7 +103,31 @@ public class PostingsList implements Comparable<PostingsList> {
 	@Override
 	public int compareTo(PostingsList other) {
 		
-		int value = this.getDocumentCount() - other.getDocumentCount();
+		int value = this.getDocumentFrequency() - other.getDocumentFrequency();
 		return value == 0 ? -1 : value;
+	}
+
+	@Override
+	public Iterator<Posting> iterator() {
+		return new PostingIterator();
+	}
+	
+	private class PostingIterator implements Iterator<Posting> {
+
+		private Posting posting = firstPosting;
+		
+		@Override
+		public boolean hasNext() {
+			return posting != null;
+		}
+
+		@Override
+		public Posting next() {
+			Posting p = posting;
+			posting = posting.getNextPosting();
+			
+			return p;
+		}
+		
 	}
 }

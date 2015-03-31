@@ -44,11 +44,11 @@ public class SSLogger {
 	
 	private SimpleDateFormat df = new SimpleDateFormat("HH:mm:ss.SSS");
 	public void logTime(String message) {
-		write(message +": \t"+ df.format(new Date().getTime()));
+		write(df.format(new Date().getTime())+": "+ message);
 	}
 	
 	private void write(String s) {
-		//System.out.println(s);
+		System.out.println(s);
 		
 		try(PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter(logFile, true)))) {
 		    out.println(s);

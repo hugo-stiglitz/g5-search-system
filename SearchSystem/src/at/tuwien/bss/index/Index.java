@@ -1,59 +1,57 @@
 package at.tuwien.bss.index;
 
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
-
-import javafx.util.Pair;
+import java.util.Map.Entry;
 
 public class Index {
 	
 	private Map<String,PostingsList> indexMap = new HashMap<String,PostingsList>();
-	private Map<Pair<Integer,String>, IdfTf> idfTfMap;
 
+	private int documentCount = 0;
+	public void setDocumentCount(int documentCount) { this.documentCount = documentCount; }
+	public int getDocumentCount() { return documentCount; }
+	
 	/**
 	 * add a term to the postings list
 	 * @param term
 	 */
 	public void add(String term, int documentId) {
 
-		//term already exists in list
-		if(indexMap.containsKey(term)) {
-			indexMap.get(term).add(documentId);
-		}
-		//term not in list yet
-		else {
-
-			PostingsList postingsList = new PostingsList(term, documentId);
+		PostingsList postingsList = indexMap.get(term);
+		
+		if (postingsList == null) {
+			// term not in list yet
+			postingsList = new PostingsList();
 			indexMap.put(term, postingsList);
 		}
+		
+		postingsList.add(documentId);
 	}
 	
-	public Set<PostingsList> getAllPostingsLists() {
-		
-		Set<PostingsList> result = new HashSet<PostingsList>();
-		
-		Set<String> keySet = indexMap.keySet();
-		for(String term : keySet) {
-			result.add(indexMap.get(term));
-		}
-		
-		return result;
-	}
-	
-	public PostingsList getPostingsList(String term) {
-		
-		if(indexMap.containsKey(term)) {
-			return indexMap.get(term);
-		}
-		else {
-			return new PostingsList(term);
+	public void calculateWeighting(Weighting weightingMethod) {
+		for (Entry<String, PostingsList> entry : indexMap.entrySet()) {
+			PostingsList postingsList = entry.getValue();
+			String term = entry.getKey();
+			
+			for (Posting posting : postingsList) {
+				posting.setWeight(weightingMethod.calculate(this, term, postingsList, posting));
+			}
 		}
 	}
 	
-	public void setIdfTfMap(Map<Pair<Integer,String>, IdfTf> idfTfMap) { this.idfTfMap = idfTfMap; }
-	public Map<Pair<Integer,String>, IdfTf> getIdfTfMap() { return idfTfMap; }
+	public Map<Integer, Float> getTermWeighting(String term) {
+		Map<Integer, Float> map = new HashMap<Integer, Float>();
+		
+		PostingsList postingsList = indexMap.get(term);
+		if (postingsList != null) {
+			for (Posting posting : postingsList) {
+				map.put(posting.getDocumentId(), posting.getWeight());
+			}
+		}
+		
+		return map;
+	}
 
 	public String print() {
 		
@@ -62,24 +60,12 @@ public class Index {
 		for(String term : indexMap.keySet()) {
 			
 			PostingsList pl = indexMap.get(term);
-			sb.append("* "+ term +":\t(document-frequency: "+ pl.getDocumentCount() +")\n");
+			sb.append("* "+ term +":\t(document-frequency: "+ pl.getDocumentFrequency() +")\n");
 			sb.append("\tdocuments: "+ pl.print());
 			sb.append("\n");
 		}
 		
 		return sb.toString();
 	}
-
-	public Map<Integer, IdfTf> getIdfTf(String term) {
-		
-		Map<Integer, IdfTf> resultMap = new HashMap<Integer, IdfTf>();
-		
-		for(Pair<Integer,String> key : idfTfMap.keySet()) {
-			if(key.getValue().equals(term)) {
-				resultMap.put(key.getKey(), idfTfMap.get(key));
-			}
-		}
-		
-		return resultMap;
-	}
+	
 }

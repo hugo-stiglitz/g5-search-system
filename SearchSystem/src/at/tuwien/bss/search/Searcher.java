@@ -5,7 +5,6 @@ import java.util.List;
 import java.util.Map;
 
 import javafx.util.Pair;
-import at.tuwien.bss.index.IdfTf;
 import at.tuwien.bss.index.Index;
 import at.tuwien.bss.logging.SSLogger;
 
@@ -20,12 +19,12 @@ public class Searcher {
 		//calculate the sum of idf-tf for each document (over all terms in query)
 		LOGGER.logTime("START CALCULATING DOCUMENT VALUES");
 		
-		Map<Pair<Integer,String>, IdfTf> idfTfMap = new HashMap<Pair<Integer,String>, IdfTf>();
-		Map<Integer, IdfTf> documentIdfTfMap = new HashMap<Integer, IdfTf>();
+		Map<Pair<Integer,String>, Float> idfTfMap = new HashMap<Pair<Integer,String>, Float>();
+		Map<Integer, Float> documentIdfTfMap = new HashMap<Integer, Float>();
 		
 		//get idf-tf's of terms in search query
 		for(String term : queryTerms) {
-			Map<Integer,IdfTf> tmpMap = index.getIdfTf(term);
+			Map<Integer,Float> tmpMap = index.getTermWeighting(term);
 			for(Integer documentId : tmpMap.keySet()) {
 				idfTfMap.put(new Pair<Integer,String>(documentId, term), tmpMap.get(documentId));
 			}
@@ -35,7 +34,7 @@ public class Searcher {
 		for(Pair<Integer,String> key : idfTfMap.keySet()) {
 			
 			Integer documentId = key.getKey();
-			IdfTf idfTf = idfTfMap.get(key);
+			float idfTf = idfTfMap.get(key);
 			
 			/*
 			// LOW LEVEL LOGGING
@@ -43,7 +42,7 @@ public class Searcher {
 			*/
 
 			if(documentIdfTfMap.containsKey(documentId)) {
-				documentIdfTfMap.put(documentId, IdfTf.sum(documentIdfTfMap.get(documentId), idfTf));
+				documentIdfTfMap.put(documentId, documentIdfTfMap.get(documentId) + idfTf);
 			}
 			else {
 				documentIdfTfMap.put(documentId, idfTf);
@@ -71,12 +70,12 @@ public class Searcher {
 		DocumentScore[] scoreArray = new DocumentScore[documentIdfTfMap.size()];
 		int i = 0;
 		for(Integer key : documentIdfTfMap.keySet()) {
-			scoreArray[i] = new DocumentScore(key, documentIdfTfMap.get(key).getIdfTf());
+			scoreArray[i] = new DocumentScore(key, documentIdfTfMap.get(key));
 			i++;
 		}
 		
 		LOGGER.logTime("START SORTING");
-		HeapSort.heapSort(scoreArray, 10);
+		HeapSort.heapSort(scoreArray, Math.min(10, scoreArray.length-1));
 		LOGGER.logTime("SORTED");
 		
 		return scoreArray;

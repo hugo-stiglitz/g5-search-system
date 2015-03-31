@@ -10,7 +10,7 @@ public class IndexerBag extends Indexer {
 	private Segmenter segmenter = new SegmenterBag();
 
 	@Override
-	public List<String> segment(List<String> terms) {
+	protected List<String> segment(List<String> terms) {
 		return segmenter.segment(terms);
 	}
 

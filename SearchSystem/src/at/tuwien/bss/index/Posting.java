@@ -4,6 +4,7 @@ public class Posting {
 	
 	private int documentId;
 	private int termFrequency;
+	private float weight = 0;
 	
 	private Posting nextPosting;
 
@@ -13,29 +14,18 @@ public class Posting {
 	 * 			document-id
 	 */
 	public Posting(int documentId) {
-		setDocumentId(documentId);
-		termFrequency = 1;
+		this.documentId = documentId;
+		termFrequency = 0;
 	}
 
-	private void setDocumentId(int documentId) { this.documentId = documentId; }
 	public int getDocumentId() { return documentId; }
 	
 	public void incrementTermFrequency() { termFrequency++; }
-	public int getTermCount() { return termFrequency; }
+	public int getTermFrequency() { return termFrequency; }
+	
+	public void setWeight(float weight) { this.weight = weight; }
+	public float getWeight() { return this.weight; }
 	
 	public void setNextPosting(Posting nextPosting) { this.nextPosting = nextPosting; }
-	private Posting getNextPosting() { return nextPosting; }
-
-	public boolean hasNext() {
-		return getNextPosting() != null;
-	}
-
-	public Posting next() {
-		
-		if(getNextPosting() == null) {
-			throw new NullPointerException("next posting is null!");
-		}
-		
-		return getNextPosting();
-	}
+	public Posting getNextPosting() { return nextPosting; }
 }

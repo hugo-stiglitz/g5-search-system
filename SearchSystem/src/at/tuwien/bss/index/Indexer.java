@@ -1,11 +1,11 @@
 package at.tuwien.bss.index;
 
-import java.util.HashMap;
+import java.io.IOException;
 import java.util.List;
-import java.util.Map;
 
+import at.tuwien.bss.documents.DocumentCollection;
 import at.tuwien.bss.logging.SSLogger;
-import javafx.util.Pair;
+import at.tuwien.bss.parse.Parser;
 
 public abstract class Indexer {
 	
@@ -13,37 +13,36 @@ public abstract class Indexer {
 	
 	private Index index = new Index();
 	
-	public abstract List<String> segment(List<String> terms);
+	protected abstract List<String> segment(List<String> terms);
 	
-	
-	public void add(List<String> terms, int documentId) {
+	/**
+	 * Index a DocumentCollection.
+	 * @param collection
+	 * @param max Maximum Number of Documents to index (for test purposes TODO remove)
+	 * @throws IOException
+	 */
+	public void index(DocumentCollection collection, int max) throws IOException {
 		
-		List<String> segmentedTerms = segment(terms);
-		for(String term : segmentedTerms) {
-			index.add(term, documentId);
-		}
-	}
-	
-	public void calculateIdfTf() {
-		
-		LOGGER.logTime("START CALCULATE IDF-TF");
-		
-		Map<Pair<Integer,String>, IdfTf> idfTfMap = new HashMap<Pair<Integer,String>, IdfTf>();
-		
-		//calculate idf-tf for each term in each document
-		//TODO weighting of idf and tf 
-		for(PostingsList pl : index.getAllPostingsLists()) {
-			for(Posting p : pl.getPostings()) {
-				IdfTf idfTf = new IdfTf();
-				idfTf.setDocumentCount(pl.getDocumentCount());
-				idfTf.setTermCount(p.getTermCount());
-				idfTfMap.put(new Pair<Integer, String>(p.getDocumentId(), pl.getTerm()), idfTf);
+		Parser parser = new Parser();
+				
+		int count = Math.min(collection.getCount(), max);
+		for (int documentId=0; documentId<count; documentId++) {
+			
+			// get content, parse and segment
+			String document = collection.getContent(documentId);
+			List<String> terms = parser.parse(document);
+			List<String> segmentedTerms = segment(terms);
+			
+			// insert terms into index
+			for(String term : segmentedTerms) {
+				index.add(term, documentId);
 			}
 		}
 		
-		index.setIdfTfMap(idfTfMap);
+		index.setDocumentCount(count);
 		
-		LOGGER.logTime("IDF-TF CALCULATED");
+		// calculate the Tf-Idf Weighting
+		index.calculateWeighting(new WeightingTfIdf());
 	}
 	
 	public Index getIndex() {
