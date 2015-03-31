@@ -95,7 +95,7 @@ public class PostingsList implements Comparable<PostingsList>, Iterable<Posting>
 			sb.append("doc"+ posting.getDocumentId() +" (tf: "+ posting.getTermFrequency() +"), ");
 		}
 		
-		if (count == 0) {
+		if (documentFrequency == 0) {
 			sb.append("empty");
 		}
 
