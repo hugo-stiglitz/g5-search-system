@@ -56,11 +56,12 @@ public class Searcher {
 		/*
 		// LOW LEVEL LOGGING
 		for(Integer key : documentIdfTfMap.keySet()) {
-			IdfTf value = documentIdfTfMap.get(key);
+			float value = documentIdfTfMap.get(key);
 			
 			LOGGER.log("Document: "+ key +"\t -- value: "+ value);
 		}
 		*/
+		
 		
 		
 		//TODO score documents
@@ -75,7 +76,7 @@ public class Searcher {
 		}
 		
 		LOGGER.logTime("START SORTING");
-		HeapSort.heapSort(scoreArray, Math.min(10, scoreArray.length-1));
+		HeapSort.heapSort(scoreArray, 10);
 		LOGGER.logTime("SORTED");
 		
 		return scoreArray;

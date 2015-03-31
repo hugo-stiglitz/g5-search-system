@@ -92,7 +92,7 @@ public class PostingsList implements Comparable<PostingsList>, Iterable<Posting>
 		StringBuilder sb = new StringBuilder();
 
 		for (Posting posting : this) {
-			sb.append("doc"+ posting.getDocumentId() +" (tf: "+ posting.getTermFrequency() +"), ");
+			sb.append("doc"+ posting.getDocumentId() +" (tf: "+ posting.getTermFrequency() +" ; w: "+posting.getWeight()+"), ");
 		}
 		
 		if (documentFrequency == 0) {
