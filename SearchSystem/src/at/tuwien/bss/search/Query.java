@@ -9,14 +9,10 @@ import at.tuwien.bss.index.Index;
 import at.tuwien.bss.index.Posting;
 import at.tuwien.bss.index.PostingsList;
 import at.tuwien.bss.index.Weighting;
-import at.tuwien.bss.parse.Parser;
-import at.tuwien.bss.parse.Segmenter;
 
 public class Query implements Iterable<Entry<String, Posting>> {
 	
-	public Query(String input, Parser parser, Segmenter segmenter) {
-		List<String> terms = parser.parse(input);
-		terms = segmenter.segment(terms);
+	public Query(List<String> terms) {
 		
 		// Determine Term Frequency in Query
 		queryTermPostings = new HashMap<String, Posting>();
@@ -40,8 +36,10 @@ public class Query implements Iterable<Entry<String, Posting>> {
 			
 			PostingsList postingsList = index.getPostingsList(term);
 			if (postingsList == null) {
-				// term does not exist in index --> term can be removed
-				queryTermPostings.remove(term);
+				// term does not exist in index --> weight = 0
+				queryPosting.setWeight(0);
+				
+				// TODO: maybe remove from query queryTermPostings??
 			}
 			else {
 				// term does exist in query and in index
@@ -51,9 +49,7 @@ public class Query implements Iterable<Entry<String, Posting>> {
 				// the temporary posting from the query is used (it is not added to the index
 				// but is used for the weight calculation)
 				
-				if (queryPosting.getWeight() == Float.NaN) { // check if weight already has been calculated
-					queryPosting.setWeight(weightingMethod.calculate(index, term, postingsList, queryPosting));
-				}
+				queryPosting.setWeight(weightingMethod.calculate(index, term, postingsList, queryPosting));
 			}
 		}
 	}
@@ -63,5 +59,9 @@ public class Query implements Iterable<Entry<String, Posting>> {
 	@Override
 	public Iterator<Entry<String, Posting>> iterator() {
 		return queryTermPostings.entrySet().iterator();
+	}
+	
+	public Iterable<String> terms() {
+		return queryTermPostings.keySet();
 	}
 }

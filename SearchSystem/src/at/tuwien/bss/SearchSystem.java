@@ -62,8 +62,10 @@ public class SearchSystem {
 		Segmenter segmenter = new SegmenterBag();
 		queryTerms = segmenter.segment(queryTerms);
 		
-		Searcher searcher = new Searcher();
-		DocumentScore[] scoreArray = searcher.search(queryTerms, indexerBoW.getIndex());
+		Searcher searcher = new Searcher(indexerBoW.getIndex(), queryTerms);
+		
+		//DocumentScore[] scoreArray = searcher.searchIdfTf();
+		DocumentScore[] scoreArray = searcher.searchCosineSimilarity();
 		
 		LOGGER.logTime("SEARCH FINISHED");
 		

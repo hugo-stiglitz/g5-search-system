@@ -43,6 +43,8 @@ public abstract class Indexer {
 		
 		// calculate the Tf-Idf Weighting
 		index.calculateWeighting(new WeightingTfIdf());
+		
+		LOGGER.log("indexed "+count+" documents");
 	}
 	
 	public Index getIndex() {

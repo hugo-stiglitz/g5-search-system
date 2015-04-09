@@ -1,18 +1,30 @@
 package at.tuwien.bss.search;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
 import javafx.util.Pair;
 import at.tuwien.bss.index.Index;
+import at.tuwien.bss.index.Posting;
+import at.tuwien.bss.index.PostingsList;
+import at.tuwien.bss.search.CosineSimilarity;
 import at.tuwien.bss.logging.SSLogger;
 
 public class Searcher {
 	
 	private static final SSLogger LOGGER = SSLogger.getLogger();
 
-	public DocumentScore[] search(List<String> queryTerms, Index index) {
+	public Searcher(Index index, List<String> queryTerms) {
+		this.index = index;
+		this.queryTerms = queryTerms;
+	}
+	
+	private Index index;
+	private List<String> queryTerms;
+	
+	public DocumentScore[] searchIdfTf() {
 		
 		//TODO remove all terms with document frequency 0
 		
@@ -72,6 +84,48 @@ public class Searcher {
 		int i = 0;
 		for(Integer key : documentIdfTfMap.keySet()) {
 			scoreArray[i] = new DocumentScore(key, documentIdfTfMap.get(key));
+			i++;
+		}
+		
+		LOGGER.logTime("START SORTING");
+		HeapSort.heapSort(scoreArray, 10);
+		LOGGER.logTime("SORTED");
+		
+		return scoreArray;
+	}
+
+	public DocumentScore[] searchCosineSimilarity() {
+		
+		Query query = new Query(queryTerms);
+		
+		// weight the query terms with the index's weighting method
+		query.calculateWeighting(index, index.getWeightingMethod());
+		
+		CosineSimilarity cosineSimilarity = new CosineSimilarity(index);
+		
+		
+		// find documents to compare with query
+		HashSet<Integer> documents = new HashSet<Integer>();
+		
+		LOGGER.log("Find Documents for Similarity Check");
+		
+		for (String term : query.terms()) {
+			PostingsList postingsList = index.getPostingsList(term);
+			if (postingsList != null) {
+				for (Posting posting : postingsList) {
+					documents.add(posting.getDocumentId());
+				}
+			}
+		}
+		
+		LOGGER.log(documents.size()+" documents found");
+		
+		// perform cosine similarity for these documents
+		
+		DocumentScore[] scoreArray = new DocumentScore[documents.size()];
+		int i = 0;
+		for(Integer documentId : documents) {
+			scoreArray[i] = new DocumentScore(documentId, cosineSimilarity.calculate(query, documentId));
 			i++;
 		}
 		
