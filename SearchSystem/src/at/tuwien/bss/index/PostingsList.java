@@ -50,6 +50,8 @@ public class PostingsList implements Comparable<PostingsList>, Iterable<Posting>
 				if (posting.getDocumentId() < documentId) {
 					// the docId is smaller --> insert new Posting here
 					
+					// ATTENTION: when chaning the Ordering update getPosting(...) aswell as it relies on this ordering
+					
 					Posting newPosting = createNewPosting(documentId);
 
 					// connect to last posting
@@ -81,6 +83,20 @@ public class PostingsList implements Comparable<PostingsList>, Iterable<Posting>
 		
 		// do increment stuff
 		posting.incrementTermFrequency();
+	}
+	
+	public Posting getPosting(int documentId) {
+		for (Posting posting : this) {
+			if (posting.getDocumentId() == documentId) {
+				return posting;
+			}
+			else if (posting.getDocumentId() < documentId) {
+				// not in list
+				break;
+			}
+		}
+		
+		return null;
 	}
 
 	public void createSkipList() {

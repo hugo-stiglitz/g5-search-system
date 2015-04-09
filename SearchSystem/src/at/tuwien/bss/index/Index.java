@@ -12,6 +12,8 @@ public class Index {
 	public void setDocumentCount(int documentCount) { this.documentCount = documentCount; }
 	public int getDocumentCount() { return documentCount; }
 	
+	private Weighting weightingMethod = null;
+	
 	/**
 	 * add a term to the postings list
 	 * @param term
@@ -29,7 +31,25 @@ public class Index {
 		postingsList.add(documentId);
 	}
 	
+	public PostingsList getPostingsList(String term) {
+		
+		PostingsList postingsList = indexMap.get(term);
+		return postingsList;
+	}
+	
+	public Posting getPosting(String term, int documentId) {
+		PostingsList postingsList = getPostingsList(term);
+		if (postingsList == null) {
+			// term does not exist in index
+			return null;
+		}
+		else {
+			return postingsList.getPosting(documentId);
+		}
+	}
+	
 	public void calculateWeighting(Weighting weightingMethod) {
+		
 		for (Entry<String, PostingsList> entry : indexMap.entrySet()) {
 			PostingsList postingsList = entry.getValue();
 			String term = entry.getKey();
@@ -38,6 +58,12 @@ public class Index {
 				posting.setWeight(weightingMethod.calculate(this, term, postingsList, posting));
 			}
 		}
+		
+		this.weightingMethod = weightingMethod;
+	}
+	
+	public Weighting getWeightingMethod() {
+		return this.weightingMethod;
 	}
 	
 	public Map<Integer, Float> getTermWeighting(String term) {
