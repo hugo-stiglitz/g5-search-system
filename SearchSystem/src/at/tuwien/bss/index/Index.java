@@ -1,5 +1,8 @@
 package at.tuwien.bss.index;
 
+import java.io.PrintWriter;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -92,6 +95,42 @@ public class Index {
 		}
 		
 		return sb.toString();
+	}
+	
+	public void exportCsv() {
+		PrintWriter writer;
+		try {
+			writer = new PrintWriter("index.csv", "UTF-8");
+			writer.println("Term;DocumentFrequency;docId;termFrequency;weight");
+			
+			for(String term : indexMap.keySet()) {
+				
+				PostingsList pl = indexMap.get(term);
+				
+				ArrayList<Posting> postings = new ArrayList<Posting>(pl.getDocumentFrequency());
+				for (Posting posting : pl) {
+					postings.add(posting);
+				}
+				postings.sort(new Comparator<Posting>() {
+
+					@Override
+					public int compare(Posting o1, Posting o2) {
+						return Float.compare(o1.getWeight(), o2.getWeight());
+					}
+				});
+				
+				for (Posting posting : postings) {
+					
+					writer.println(term +";"+ pl.getDocumentFrequency()+";doc"+posting.getDocumentId()+";"+posting.getTermFrequency()+";"+posting.getWeight());
+				}
+			
+				
+			}
+			
+			writer.close();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 	
 }

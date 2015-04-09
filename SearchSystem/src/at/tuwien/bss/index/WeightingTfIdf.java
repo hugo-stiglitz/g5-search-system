@@ -5,10 +5,10 @@ public class WeightingTfIdf implements Weighting {
 	@Override
 	public float calculate(Index index, String term, PostingsList postingList, Posting posting) {
 		
-		float idf = (float)Math.log10(index.getDocumentCount() / (float)postingList.getDocumentFrequency());
-		float tf = posting.getTermFrequency();
+		double idf = Math.log10(index.getDocumentCount() / (double)postingList.getDocumentFrequency());
+		double tf = posting.getTermFrequency();
 		
-		return tf * idf;
+		return (float)(tf * idf);
 	}
 	
 }

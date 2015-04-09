@@ -52,6 +52,9 @@ public class SearchSystem {
 		
 		//LOGGER.log(indexerBoW.getIndex().print());
 		
+		//LOGGER.logTime("Export...");
+		//indexerBoW.getIndex().exportCsv();
+		
 		//String searchQuery = "astronomy club sci space GPS uucp";		//good result: sci.space/62317
 		String searchQuery = "hello i want to buy a computer";
 		
