@@ -19,11 +19,9 @@ public class Parser {
 			String token = result.get(i);
 			//TODO stoplist
 			String term = normalizer.normalize(token);
+			
 			result.set(i, term);
 		}
-		
-		// TODO: make sure each token is only present once (or is this the indexer's job?)
-		// XXX: indexers job ;) indexer needs term frequency of document...
 		
 		return result;
 	}

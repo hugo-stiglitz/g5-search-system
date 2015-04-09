@@ -4,7 +4,7 @@ import java.util.ArrayList;
 
 public class Tokenizer {
 	// Delimiters which end a token
-	static final char[] delimiters = new char[] { ' ', ',', '.', '?', '!', ':', ';', '/', '-', '(', ')', '[', ']', '{', '}', '<', '>', '\t', '\n', '\r' };
+	static final char[] delimiters = new char[] { ' ', ',', '.', '?', '!', ':', ';', '/', '\\', '|', '-', '(', ')', '[', ']', '{', '}', '<', '>', '\t', '\n', '\r', '"', '#', '*' };
 	
 	/**
 	 * Generates a List of Tokens from the input String
@@ -24,9 +24,7 @@ public class Tokenizer {
 			if (isDelimiter(c)) {
 				// when delimiter, add to result if it isn't empty and reset current token
 				if (token.length() > 0) {
-					result.add(token.toString());
-					
-					token = new StringBuilder();
+					token = addToken(result, token);
 				}
 			}
 			else {
@@ -35,7 +33,22 @@ public class Tokenizer {
 			}
 		}
 		
+		// don't forget last token
+		token = addToken(result, token);
+		
 		return result;
+	}
+	
+	private StringBuilder addToken(ArrayList<String> result, StringBuilder token) {
+		
+		if (token.length() == 0) {
+			// do not add empty token			
+			return token;
+		}
+		else {
+			result.add(token.toString());
+			return new StringBuilder();
+		}
 	}
 	
 	private static boolean isDelimiter(char c) {
