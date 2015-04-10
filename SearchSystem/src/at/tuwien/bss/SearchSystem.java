@@ -1,9 +1,11 @@
 package at.tuwien.bss;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.List;
 
 import at.tuwien.bss.documents.DocumentCollection;
+import at.tuwien.bss.index.Index;
 import at.tuwien.bss.index.Indexer;
 import at.tuwien.bss.index.IndexerBag;
 import at.tuwien.bss.logging.SSLogger;
@@ -52,8 +54,22 @@ public class SearchSystem {
 		
 		//LOGGER.log(indexerBoW.getIndex().print());
 		
-		//LOGGER.logTime("Export...");
+		LOGGER.logTime("Export...");
 		//indexerBoW.getIndex().exportCsv();
+		LOGGER.logTime("Save Index...");
+		try {
+			indexerBoW.getIndex().save("index.dat");
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+		Index index = new Index();
+		try {
+			index.load("index.dat");
+			index.exportCsv();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 		
 		//String searchQuery = "astronomy club sci space GPS uucp";		//good result: sci.space/62317
 		String searchQuery = "hello i want to buy a computer";

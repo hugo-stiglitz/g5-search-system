@@ -17,6 +17,12 @@ public class Posting {
 		this.documentId = documentId;
 		termFrequency = 0;
 	}
+	
+	public Posting(int documentId, int termFrequency, float weight) {
+		this.documentId = documentId;
+		this.termFrequency = termFrequency;
+		this.weight = weight;
+	}
 
 	public int getDocumentId() { return documentId; }
 	

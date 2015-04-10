@@ -1,5 +1,11 @@
 package at.tuwien.bss.index;
 
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -7,9 +13,13 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import at.tuwien.bss.logging.SSLogger;
+
 public class Index {
 	
-	private Map<String,PostingsList> indexMap = new HashMap<String,PostingsList>();
+	private static final SSLogger LOGGER = SSLogger.getLogger();
+	
+	private HashMap<String,PostingsList> indexMap = new HashMap<String,PostingsList>();
 
 	private int documentCount = 0;
 	public void setDocumentCount(int documentCount) { this.documentCount = documentCount; }
@@ -95,6 +105,97 @@ public class Index {
 		}
 		
 		return sb.toString();
+	}
+	
+	public void save(String filename) throws FileNotFoundException, IOException {
+		ObjectOutputStream outputStream = null;
+		try {
+			outputStream = new ObjectOutputStream(new FileOutputStream(filename));
+		
+			// write term count
+			outputStream.writeInt(indexMap.size());
+					
+			for (Entry<String,PostingsList> entry : indexMap.entrySet()) {
+				String term = entry.getKey();
+				PostingsList postingsList = entry.getValue();
+				
+				// write term
+				outputStream.writeShort(term.length());
+				outputStream.writeChars(term);
+				
+				// write DF (=postings count)
+				outputStream.writeShort(postingsList.getDocumentFrequency());
+			
+				// write postings
+				for (Posting posting : postingsList) {
+					outputStream.writeShort(posting.getDocumentId());
+					outputStream.writeInt(posting.getTermFrequency());
+					outputStream.writeFloat(posting.getWeight());
+				}
+				
+			}
+		}
+		finally {
+			if (outputStream != null) {
+				outputStream.close();
+			}
+		}
+	}
+	
+	public void load(String filename) throws FileNotFoundException, IOException {
+		ObjectInputStream inputStream = null;
+		
+		try {
+			inputStream = new ObjectInputStream(new FileInputStream(filename));
+			
+			// read term count
+			int termCount = inputStream.readInt();
+			
+			indexMap = new HashMap<String, PostingsList>(termCount);
+			
+			for (int ti=0; ti<termCount; ti++) {
+				// read term
+				int termLength = inputStream.readShort();
+				StringBuilder termBuilder = new StringBuilder(termLength);
+				for (int i = 0; i < termLength; i++) {
+					termBuilder.append(inputStream.readChar());
+				}
+				String term = termBuilder.toString();
+				termBuilder = null;
+				
+				// read DF (=postingsCount)
+				int documentFrequency = inputStream.readShort();
+				
+				Posting lastPosting = null;
+				Posting firstPosting = null;
+				for (int i = 0; i < documentFrequency; i++) {
+				
+					int documentId = inputStream.readShort();
+					int termFrequency = inputStream.readInt();
+					float weight = inputStream.readFloat();
+					
+					Posting posting = new Posting(documentId, termFrequency, weight);
+					
+					if (lastPosting == null) {
+						firstPosting = posting;
+					}
+					else {
+						lastPosting.setNextPosting(posting);
+					}
+					
+					lastPosting = posting;
+				}
+				
+				PostingsList postingsList = new PostingsList(firstPosting, documentFrequency);
+				indexMap.put(term, postingsList);
+			}
+		}
+		finally {
+			if (inputStream != null) {
+			    SSLogger.getLogger().log(inputStream.available()+" - read "+indexMap.size()+"terms");
+				inputStream.close();
+			}
+		}
 	}
 	
 	public void exportCsv() {

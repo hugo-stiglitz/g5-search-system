@@ -13,6 +13,12 @@ public class PostingsList implements Comparable<PostingsList>, Iterable<Posting>
 		documentFrequency = 0;
 	}
 	
+	public PostingsList(Posting firstPosting, int documentFrequency) {
+		
+		this.firstPosting = firstPosting;
+		this.documentFrequency = documentFrequency;
+	}
+	
 	public int getDocumentFrequency() { return documentFrequency; }
 	private void incrementDocumentFrequency() { documentFrequency++; }
 
