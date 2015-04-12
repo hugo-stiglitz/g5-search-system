@@ -6,14 +6,18 @@ import java.util.List;
 import at.tuwien.bss.documents.DocumentCollection;
 import at.tuwien.bss.logging.SSLogger;
 import at.tuwien.bss.parse.Parser;
+import at.tuwien.bss.parse.Segmenter;
 
-public abstract class Indexer {
+public class Indexer {
 	
 	private static final SSLogger LOGGER = SSLogger.getLogger();
 	
 	private Index index = new Index();
+	private Segmenter segmenter;
 	
-	protected abstract List<String> segment(List<String> terms);
+	public Indexer(Segmenter segmenter) {
+		this.segmenter = segmenter;
+	}
 	
 	/**
 	 * Index a DocumentCollection.
@@ -31,7 +35,7 @@ public abstract class Indexer {
 			// get content, parse and segment
 			String document = collection.getContent(documentId);
 			List<String> terms = parser.parse(document);
-			List<String> segmentedTerms = segment(terms);
+			List<String> segmentedTerms = segmenter.segment(terms);
 			
 			// insert terms into index
 			for(String term : segmentedTerms) {
@@ -44,10 +48,20 @@ public abstract class Indexer {
 		// calculate the Tf-Idf Weighting
 		index.calculateWeighting(new WeightingTfIdf());
 		
-		LOGGER.log("indexed "+count+" documents");
+		LOGGER.logTime("indexed "+count+" documents");
 	}
 	
 	public Index getIndex() {
 		return index;
+	}
+	
+	public void loadIndex(Index index, DocumentCollection documentCollection) {
+		index.setDocumentCount(documentCollection.getCount());
+		index.calculateWeighting(new WeightingTfIdf());
+		this.index = index;
+	}
+	
+	public Segmenter getSegmenter() {
+		return segmenter;
 	}
 }

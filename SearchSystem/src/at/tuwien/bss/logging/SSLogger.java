@@ -13,12 +13,15 @@ public class SSLogger {
 	private File logFile;
 	
 	private SSLogger() {
+		
+		File logFileDir = new File("log");
 
 		try {
-			logFile = new File("log/log.txt");
+			logFile = new File(logFileDir + "/log.txt");
 			if (logFile.exists()) {
 				logFile.delete();
 			}
+			logFileDir.mkdirs();
 			logFile.createNewFile();
 			
 			

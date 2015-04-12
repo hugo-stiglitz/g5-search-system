@@ -23,6 +23,6 @@ public class DocumentScore implements Comparable<DocumentScore> {
 	
 	@Override
 	public String toString() {
-		return /*"Document "+ getDocumentId() +": "+ */String.format("%.6g%n", getScore());
+		return String.format("%.6g", getScore());
 	}
 }

@@ -17,8 +17,6 @@ import at.tuwien.bss.logging.SSLogger;
 
 public class Index {
 	
-	private static final SSLogger LOGGER = SSLogger.getLogger();
-	
 	private HashMap<String,PostingsList> indexMap = new HashMap<String,PostingsList>();
 
 	private int documentCount = 0;
@@ -198,10 +196,10 @@ public class Index {
 		}
 	}
 	
-	public void exportCsv() {
+	public void exportCsv(String filename) {
 		PrintWriter writer;
 		try {
-			writer = new PrintWriter("index.csv", "UTF-8");
+			writer = new PrintWriter(filename, "UTF-8");
 			writer.println("Term;DocumentFrequency;docId;termFrequency;weight");
 			
 			for(String term : indexMap.keySet()) {
