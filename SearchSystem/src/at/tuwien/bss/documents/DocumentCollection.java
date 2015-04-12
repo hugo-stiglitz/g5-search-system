@@ -5,6 +5,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 public class DocumentCollection {
 	
@@ -28,11 +30,13 @@ public class DocumentCollection {
             }
             else {
                 documentPaths.add(f.getAbsolutePath());
+                documentIdNameMap.put(f.getName(), documentPaths.size()-1);
             }
         }
 	}
 	
 	private ArrayList<String> documentPaths = new ArrayList<String>();
+	private Map<String,Integer> documentIdNameMap = new HashMap<String,Integer>();
 	
 	public int getCount() { return documentPaths.size(); }
 	
@@ -48,5 +52,9 @@ public class DocumentCollection {
 	public String getContent(int documentId) throws IOException {
 		byte[] bytes = Files.readAllBytes(Paths.get(getPath(documentId)));
 		return new String(bytes);
+	}
+	
+	public String getContent(String documentName) throws IOException {
+		return this.getContent(documentIdNameMap.get(documentName));
 	}
 }

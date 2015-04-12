@@ -34,6 +34,7 @@ public class SearchSystem {
 
 
 	private DocumentCollection documentCollection = new DocumentCollection();
+	private DocumentCollection topicCollection = new DocumentCollection();
 
 	private Indexer indexerBoW = new Indexer(new SegmenterBag());
 	private Indexer indexerBi = new Indexer(new SegmenterBi());
@@ -53,7 +54,7 @@ public class SearchSystem {
 		//String searchQuery = "hello i want to buy a computer";
 
 		System.out.print("Command: ");
-		while(sc.hasNext()) {
+		while(sc.hasNextLine()) {
 
 			String[] input = sc.nextLine().split(" ");
 			s.readCommand(input);
@@ -66,10 +67,13 @@ public class SearchSystem {
 
 	private void load() {
 
-		documentCollection = new DocumentCollection();
 		//documents are placed in the subset folder
 		documentCollection.importFolder(".\\..\\..\\subset");
 		LOGGER.logTime("imported "+documentCollection.getCount()+" documents");
+
+		//topics are placed in the subset folder
+		topicCollection.importFolder(".\\..\\..\\topics");
+		LOGGER.logTime("imported "+topicCollection.getCount()+" topics");
 
 		File indexBagFile = new File(INDEX_BAG_DAT);
 		File indexBiFile = new File(INDEX_BI_DAT);
@@ -142,7 +146,32 @@ public class SearchSystem {
 			return;
 		}
 
-		// command "-s" for new search
+		// command "-t" for topic search
+		if(input[0].equals("-t")) {
+			
+			String searchQuery = "";
+
+			//TODO set flags
+			for(int i = 1; i < input.length; i++) {
+				String command = input[i];
+				if(!command.startsWith("-")) {
+					try {
+						searchQuery = topicCollection.getContent(command);
+					} catch (IOException e) {
+						System.out.println("topic file not existing");
+					}
+				}
+			}
+			
+			DocumentScore[] result = search(searchQuery, indexerBoW);
+			for(int i = 0; i < result.length; i++) {
+				System.out.println(result[i] +" : "+ documentCollection.getName(result[i].getDocumentId()));
+			}
+
+			return;
+		}
+
+		// command "-s" for free text search
 		if(input[0].equals("-s")) {
 
 			//init default values
@@ -170,10 +199,10 @@ public class SearchSystem {
 			for(int i = 0; i < result.length; i++) {
 				System.out.println(result[i] +" : "+ documentCollection.getName(result[i].getDocumentId()));
 			}
-			
+
 			return;
 		}
-		
+
 		System.out.println("invalid command");
 	}
 
