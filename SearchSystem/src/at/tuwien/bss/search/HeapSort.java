@@ -10,7 +10,7 @@ public class HeapSort {
 		}
 
 		//sort first "count" elements
-		for(int i = count; i > 0; i--) {
+		for(int i = values.length-1; i > 0; i--) {
 			//swap last element with first
 			swap(values, 0, i); 
 			// create heap from position 0 to i

@@ -6,5 +6,7 @@ import at.tuwien.bss.index.Index;
 
 public interface Filter {
 	
-	public Set<Integer> filter(Query query, Set<Integer> documents, Index index);
+	public Set<Integer> filter(Query query, Index index);
+	
+	public void setValue(double value);
 }

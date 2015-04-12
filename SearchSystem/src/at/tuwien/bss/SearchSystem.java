@@ -1,12 +1,13 @@
 package at.tuwien.bss;
 
-import java.io.Console;
 import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import at.tuwien.bss.documents.DocumentCollection;
 import at.tuwien.bss.index.Index;
@@ -16,7 +17,9 @@ import at.tuwien.bss.parse.Parser;
 import at.tuwien.bss.parse.SegmenterBag;
 import at.tuwien.bss.parse.SegmenterBi;
 import at.tuwien.bss.search.DocumentScore;
+import at.tuwien.bss.search.Filter;
 import at.tuwien.bss.search.FilterContent;
+import at.tuwien.bss.search.FilterMinimum;
 import at.tuwien.bss.search.Query;
 import at.tuwien.bss.search.Searcher;
 
@@ -32,14 +35,20 @@ public class SearchSystem {
 	private static final String FLAG_BAG = "bag";
 	private static final String FLAG_BI = "bi";
 
+	private static final String FLAG_CONTENT = "fc";
+	private static final String FLAG_MINIMUM = "fm";
+
 
 	private DocumentCollection documentCollection = new DocumentCollection();
 	private DocumentCollection topicCollection = new DocumentCollection();
 
+	private Map<String,Indexer> indexerMap = new HashMap<String,Indexer>();
 	private Indexer indexerBoW = new Indexer(new SegmenterBag());
 	private Indexer indexerBi = new Indexer(new SegmenterBi());
 
-	private static Map<String,Indexer> indexerMap = new HashMap<String,Indexer>();
+	private Map<String,Filter> filterMap = new HashMap<String,Filter>();
+	private Filter filterContent = new FilterContent(0.5);
+	private Filter filterMinimum = new FilterMinimum();
 
 	public static void main(String[] args) {
 
@@ -105,6 +114,9 @@ public class SearchSystem {
 
 		indexerMap.put(FLAG_BAG, indexerBoW);
 		indexerMap.put(FLAG_BI, indexerBi);
+
+		filterMap.put(FLAG_CONTENT, filterContent);
+		filterMap.put(FLAG_MINIMUM, filterMinimum);
 	}
 
 	private void index() {
@@ -140,6 +152,8 @@ public class SearchSystem {
 			return;
 		}
 
+		String searchQuery = "";
+
 		// command "-i" for new indexing
 		if(input[0].equals("-i")) {
 			this.index();
@@ -147,9 +161,7 @@ public class SearchSystem {
 		}
 
 		// command "-t" for topic search
-		if(input[0].equals("-t")) {
-			
-			String searchQuery = "";
+		else if(input[0].equals("-t")) {
 
 			//TODO set flags
 			for(int i = 1; i < input.length; i++) {
@@ -162,51 +174,66 @@ public class SearchSystem {
 					}
 				}
 			}
-			
-			DocumentScore[] result = search(searchQuery, indexerBoW);
-			for(int i = 0; i < result.length; i++) {
-				System.out.println(result[i] +" : "+ documentCollection.getName(result[i].getDocumentId()));
-			}
-
-			return;
 		}
 
 		// command "-s" for free text search
-		if(input[0].equals("-s")) {
-
-			//init default values
-			Indexer indexer = indexerMap.get(FLAG_BAG);
-
-
-			//TODO tmp
-			String searchQuery = "";
+		else if(input[0].equals("-s")) {
 
 			for(int i = 1; i < input.length; i++) {
 				String command = input[i];
-				if(command.startsWith("-")) {
-					command = command.substring(1, command.length());
-
-					if(indexerMap.containsKey(command)){
-						indexer = indexerMap.get(command);
-					}
-				}
-				else {
+				if(!command.startsWith("-")) {
 					searchQuery += " " + command;
 				}
 			}
-
-			DocumentScore[] result = search(searchQuery, indexer);
-			for(int i = 0; i < result.length; i++) {
-				System.out.println(result[i] +" : "+ documentCollection.getName(result[i].getDocumentId()));
-			}
-
+		}
+		else {
+			System.out.println("invalid command");
 			return;
 		}
 
-		System.out.println("invalid command");
+		//init default values
+		Indexer indexer = indexerMap.get(FLAG_BAG);
+		Filter filter = filterMap.get(FLAG_CONTENT);
+
+		Pattern numberPattern = Pattern.compile("\\d+");
+
+		for(int i = 1; i < input.length; i++) {
+			String fullCommand = input[i];
+			if(fullCommand.startsWith("-")) {
+				String command = fullCommand.substring(1, fullCommand.length());
+				command = command.split("[(]")[0];
+
+				if(indexerMap.containsKey(command)) {
+					indexer = indexerMap.get(command);
+				}
+
+				if(filterMap.containsKey(command)) {
+					filter = filterMap.get(command);
+
+					Matcher m = numberPattern.matcher(fullCommand);
+					if(m.find()) {
+						double value = Double.valueOf(m.group());
+						filter.setValue(value / 100);
+					}
+				}
+			}
+		}
+
+		DocumentScore[] result = search(searchQuery, indexer, filter);
+		for(int i = 0; i < result.length; i++) {
+			System.out.println(result[i] +" : "+ documentCollection.getName(result[i].getDocumentId()));
+		}
+
+		if(result.length == 0) {
+			System.out.println("no search results");
+		}
+
+		if(result.length > 0 && result.length < 10) {
+			System.out.println("warning: less than 10 search results available");
+		}
 	}
 
-	private DocumentScore[] search(String searchQuery, Indexer indexer) {
+	private DocumentScore[] search(String searchQuery, Indexer indexer, Filter filter) {
 
 		LOGGER.logTime("START SEARCH");
 
@@ -215,7 +242,7 @@ public class SearchSystem {
 		Query query = new Query(indexer.getSegmenter().segment(queryTerms));
 
 		Searcher searcher = new Searcher(indexer.getIndex());
-		DocumentScore[] scoreArray = searcher.searchCosineSimilarity(query, new FilterContent(0.5));
+		DocumentScore[] scoreArray = searcher.searchCosineSimilarity(query, filter);
 
 		LOGGER.logTime("SEARCH FINISHED");
 
