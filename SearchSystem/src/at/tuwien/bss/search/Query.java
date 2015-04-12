@@ -64,4 +64,8 @@ public class Query implements Iterable<Entry<String, Posting>> {
 	public Iterable<String> terms() {
 		return queryTermPostings.keySet();
 	}
+	
+	public int size() {
+		return queryTermPostings.size();
+	}
 }

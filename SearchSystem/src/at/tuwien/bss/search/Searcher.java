@@ -1,11 +1,8 @@
 package at.tuwien.bss.search;
 
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
+import java.util.Set;
 
-import javafx.util.Pair;
 import at.tuwien.bss.index.Index;
 import at.tuwien.bss.index.Posting;
 import at.tuwien.bss.index.PostingsList;
@@ -16,83 +13,13 @@ public class Searcher {
 	
 	private static final SSLogger LOGGER = SSLogger.getLogger();
 
+	private Index index;
+	
 	public Searcher(Index index) {
 		this.index = index;
 	}
-	
-	private Index index;
-	
-//	public DocumentScore[] searchIdfTf() {
-//		
-//		//TODO remove all terms with document frequency 0
-//		
-//		//calculate the sum of idf-tf for each document (over all terms in query)
-//		LOGGER.logTime("START CALCULATING DOCUMENT VALUES");
-//		
-//		Map<Pair<Integer,String>, Float> idfTfMap = new HashMap<Pair<Integer,String>, Float>();
-//		Map<Integer, Float> documentIdfTfMap = new HashMap<Integer, Float>();
-//		
-//		//get idf-tf's of terms in search query
-//		for(String term : queryTerms) {
-//			Map<Integer,Float> tmpMap = index.getTermWeighting(term);
-//			for(Integer documentId : tmpMap.keySet()) {
-//				idfTfMap.put(new Pair<Integer,String>(documentId, term), tmpMap.get(documentId));
-//			}
-//		}
-//		
-//		//sum up all (the queries terms) idf-tf's of a document
-//		for(Pair<Integer,String> key : idfTfMap.keySet()) {
-//			
-//			Integer documentId = key.getKey();
-//			float idfTf = idfTfMap.get(key);
-//			
-//			/*
-//			// LOW LEVEL LOGGING
-//			LOGGER.log("Term: "+ key.getValue() +" / DocID: "+ documentId +"\t -- value: "+ idfTf);
-//			*/
-//
-//			if(documentIdfTfMap.containsKey(documentId)) {
-//				documentIdfTfMap.put(documentId, documentIdfTfMap.get(documentId) + idfTf);
-//			}
-//			else {
-//				documentIdfTfMap.put(documentId, idfTf);
-//			}
-//		}
-//
-//		LOGGER.logTime("DOCUMENT VALUE CALCULATED");
-//		
-//		//TODO define threshold and filter documents (or terms?)
-//
-//		/*
-//		// LOW LEVEL LOGGING
-//		for(Integer key : documentIdfTfMap.keySet()) {
-//			float value = documentIdfTfMap.get(key);
-//			
-//			LOGGER.log("Document: "+ key +"\t -- value: "+ value);
-//		}
-//		*/
-//		
-//		
-//		
-//		//TODO score documents
-//		
-//		//TODO rank first 10 documents with heap-sort
-//		//XXX test ranking with idf-tf
-//		DocumentScore[] scoreArray = new DocumentScore[documentIdfTfMap.size()];
-//		int i = 0;
-//		for(Integer key : documentIdfTfMap.keySet()) {
-//			scoreArray[i] = new DocumentScore(key, documentIdfTfMap.get(key));
-//			i++;
-//		}
-//		
-//		LOGGER.logTime("START SORTING");
-//		HeapSort.heapSort(scoreArray, 10);
-//		LOGGER.logTime("SORTED");
-//		
-//		return scoreArray;
-//	}
 
-	public DocumentScore[] searchCosineSimilarity(Query query) {
+	public DocumentScore[] searchCosineSimilarity(Query query, Filter filter) {
 		
 		// weight the query terms with the index's weighting method
 		query.calculateWeighting(index, index.getWeightingMethod());
@@ -101,9 +28,7 @@ public class Searcher {
 		
 		
 		// find documents to compare with query
-		HashSet<Integer> documents = new HashSet<Integer>();
-		
-		LOGGER.log("Find Documents for Similarity Check");
+		Set<Integer> documents = new HashSet<Integer>();
 		
 		for (String term : query.terms()) {
 			PostingsList postingsList = index.getPostingsList(term);
@@ -116,20 +41,23 @@ public class Searcher {
 		
 		LOGGER.logTime(documents.size()+" relevant documents found");
 		
-		//TODO filtering
+		if(documents.size() < 10) {
+			//TODO write to console that less than 10 documents contain at least one word of query
+		}
+		
+		// filtering documents
+		documents = filter.filter(query, documents, index);
+		LOGGER.logTime(documents.size()+" most relevant documents filtered");
 		
 		// perform cosine similarity for these documents
-		
 		DocumentScore[] scoreArray = new DocumentScore[documents.size()];
 		int i = 0;
 		for(Integer documentId : documents) {
-			scoreArray[i] = new DocumentScore(documentId, cosineSimilarity.calculate(query, documentId));
-			i++;
+			scoreArray[i++] = new DocumentScore(documentId, cosineSimilarity.calculate(query, documentId));
 		}
 		
-		LOGGER.logTime("START SORTING");
+		LOGGER.logTime("Sorting...");
 		HeapSort.heapSort(scoreArray, Math.min(scoreArray.length-1, 10));
-		LOGGER.logTime("SORTED");
 		
 		return scoreArray;
 	}

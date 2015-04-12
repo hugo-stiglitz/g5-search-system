@@ -190,7 +190,7 @@ public class Index {
 		}
 		finally {
 			if (inputStream != null) {
-			    SSLogger.getLogger().log(inputStream.available()+" - read "+indexMap.size()+"terms");
+			    SSLogger.getLogger().logTime("read "+indexMap.size()+" terms from file");
 				inputStream.close();
 			}
 		}
