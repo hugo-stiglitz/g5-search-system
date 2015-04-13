@@ -332,16 +332,16 @@ public class SearchSystem {
 			"* (necessary) operation command\n"+
 			" ** -h ... help\n"+
 			" ** -i ... re-index document collection\n"+
-			" ** -s “query” ... search via free text query\n"+
-			" ** -t “topic-name” ... search via a specific topic\n"+
-			" ** -tp “run-name” ...  run topic processing over all indexed topics\n"+
+			" ** -s \"query\" ... search via free text query\n"+
+			" ** -t \"topic-name\" ... search via a specific topic\n"+
+			" ** -tp \"run-name\" ...  run topic processing over all indexed topics\n"+
 			"\n* (optional) index flag\n"+
 			" ** -bag ... user bag of words index (DEFAULT)\n"+
 			" ** -bi ... use bi-word index\n"+
 			"\n* (optional) filter flag\n"+
-			" ** -fc ... use “content filter” with threshold 50% (DEFAULT)\n"+
+			" ** -fc ... use \"content filter\" with threshold 50% (DEFAULT)\n"+
 			" ** -fc(30) ... use “content filter” with threshold 30% (value: 0-100)\n"+
-			" ** -fm ... use “minimum filter”\n"+
+			" ** -fm ... use \"minimum filter\"\n"+
 			"\n* (optional) result length\n"+
 			" ** -r(20) ... show 20 search results (DEFAULT: 10) (value > 0)\n"+
 			"\n* examples:\n"+
@@ -349,6 +349,6 @@ public class SearchSystem {
 			"       -s -fc(70) -r(15) astronomy club sci space GPS uucp\n"+
 			" ** get best 10 results for topic4 in bi-word index using the minimum filter:\n"+
 			"       -t -bi -fm topic4\n"+
-			" ** run topic processing with run-name “test” for bi-word index using conetent filter with a threshold of 50%:\n"+
-			"       -ta -bi test";
+			" ** run topic processing with run-name \"test\" for bi-word index using conetent filter with a threshold of 50%:\n"+
+			"       -tp -bi test";
 }
