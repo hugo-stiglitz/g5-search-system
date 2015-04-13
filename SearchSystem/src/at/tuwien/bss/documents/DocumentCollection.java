@@ -44,9 +44,14 @@ public class DocumentCollection {
 		return documentPaths.get(documentId);
 	}
 	
-	public String getName(int documentId) {
+	public String getDirAndName(int documentId) {
 		File f = new File(getPath(documentId));
 		return f.getParentFile().getName()+"/"+f.getName();
+	}
+	
+	public String getName(int documentId) {
+		File f = new File(getPath(documentId));
+		return f.getName();
 	}
 	
 	public String getContent(int documentId) throws IOException {

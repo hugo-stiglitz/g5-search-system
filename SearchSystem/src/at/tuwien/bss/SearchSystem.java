@@ -29,14 +29,14 @@ public class SearchSystem {
 
 	private static final String INDEX_BAG_DAT = "index_bag.dat";
 	private static final String INDEX_BI_DAT = "index_bi.dat";
-	//private static final String INDEX_BAG_CVS = "index_bag.csv";
-	//private static final String INDEX_BI_CVS = "index_bi.csv";
+	// private static final String INDEX_BAG_CVS = "index_bag.csv";
+	// private static final String INDEX_BI_CVS = "index_bi.csv";
 
 	private static final String FLAG_HELP = "-h";
 	private static final String FLAG_INDEX = "-i";
 	private static final String FLAG_SEARCH = "-s";
 	private static final String FLAG_TOPIC = "-t";
-	private static final String FLAG_TOPIC_ALL = "-ta";
+	private static final String FLAG_TOPIC_ALL = "-tp";
 
 	private static final String FLAG_BAG = "-bag";
 	private static final String FLAG_BI = "-bi";
@@ -67,9 +67,7 @@ public class SearchSystem {
 		SearchSystem s = new SearchSystem();
 		s.load();
 
-		// String searchQuery = "astronomy club sci space GPS uucp"; //good
-		// result: sci.space/62317
-		// String searchQuery = "hello i want to buy a computer";
+		// searchQuery: "astronomy club sci space GPS uucp" --> good result: sci.space/62317
 
 		System.out.print("Command: ");
 		while (sc.hasNextLine()) {
@@ -86,12 +84,11 @@ public class SearchSystem {
 	private void load() {
 
 		// documents are placed in the subset folder
-		documentCollection.importFolder(".\\..\\..\\subset");
-		LOGGER.logTime("imported " + documentCollection.getCount()
-				+ " documents");
+		documentCollection.importFolder(".\\subset");
+		LOGGER.logTime("imported " + documentCollection.getCount() + " documents");
 
 		// topics are placed in the subset folder
-		topicCollection.importFolder(".\\..\\..\\topics");
+		topicCollection.importFolder(".\\topics");
 		LOGGER.logTime("imported " + topicCollection.getCount() + " topics");
 
 		File indexBagFile = new File(INDEX_BAG_DAT);
@@ -102,11 +99,11 @@ public class SearchSystem {
 			try {
 				Index indexBoW = new Index();
 				indexBoW.load(INDEX_BAG_DAT);
-				//indexBoW.exportCsv(INDEX_BAG_CVS);
+				// indexBoW.exportCsv(INDEX_BAG_CVS);
 
 				Index indexBi = new Index();
 				indexBi.load(INDEX_BI_DAT);
-				//indexBi.exportCsv(INDEX_BI_CVS);
+				// indexBi.exportCsv(INDEX_BI_CVS);
 
 				indexerBoW.setIndex(indexBoW);
 				indexerBi.setIndex(indexBi);
@@ -149,6 +146,8 @@ public class SearchSystem {
 		} catch (IOException e) {
 			LOGGER.log("error exporting data-files");
 		}
+		
+		LOGGER.logTime("Indexing finished");
 	}
 
 	private void readCommand(String[] input) {
@@ -162,12 +161,11 @@ public class SearchSystem {
 
 		// command "-h" for help
 		if (input[0].equals(FLAG_HELP)) {
-			// TODO show help
-			System.out.println("help: in progress");
+			System.out.println(HELP_MESSAGE);
 			return;
 		}
 
-		boolean allTopics = false;
+		boolean topicProcessing = false;
 		String runname = "";
 		String searchQuery = "";
 
@@ -191,10 +189,10 @@ public class SearchSystem {
 			}
 		}
 
-		//command "-ta" for search of all topics
+		// command "-ta" for search of all topics
 		else if(input[0].equals(FLAG_TOPIC_ALL)) {
 			LOGGER.setConsoleLogging(false);
-			allTopics = true;
+			topicProcessing = true;
 			if(input.length > 1) {
 				runname = input[1];
 			}
@@ -214,7 +212,7 @@ public class SearchSystem {
 			return;
 		}
 
-		//init default values
+		// init parameters
 		int resultLength = DEFAULT_RESULT_LENGTH;
 		Indexer indexer = indexerMap.get(FLAG_BAG);
 		Filter filter = filterMap.get(FLAG_CONTENT);
@@ -271,19 +269,23 @@ public class SearchSystem {
 
 		filter.setMinResultLength(resultLength);
 
-		if(allTopics) {
+		// topic processing
+		if(topicProcessing) {
 			for(int i = 0; i < topicCollection.getCount(); i++) {
 				try {
 					searchQuery = topicCollection.getContent(i);
 					DocumentScore[] result = search(searchQuery, indexer, filter, resultLength);
 					for(int j = 0; j < result.length; j++) {
-						System.out.println(String.format("%-15s %2d. %-35s %-10s %s", topicCollection.getName(i) +":", j+1, documentCollection.getName(result[j].getDocumentId()), result[j], runname));
+						//System.out.println(String.format("%-15s %2d. %-35s %-10s %s", topicCollection.getName(i) +":", j+1, documentCollection.getName(result[j].getDocumentId()), result[j], runname));
+						//TODO what is Q0?
+						System.out.println(String.format(topicCollection.getName(i) +" Q0 "+  documentCollection.getDirAndName(result[j].getDocumentId()) +" "+ (j+1) +" "+ result[j] +" "+ runname));
 					}
 				} catch (IOException e) {
 					System.out.println("unexpected error");
 				}
 			}
 		}
+		// other search
 		else {
 			if(searchQuery == null || searchQuery.equals("")) {
 				System.out.println("invalid search query");
@@ -292,7 +294,7 @@ public class SearchSystem {
 
 			DocumentScore[] result = search(searchQuery, indexer, filter, resultLength);
 			for(int i = 0; i < result.length; i++) {
-				System.out.println(String.format("%2d. %-35s %s", i+1, documentCollection.getName(result[i].getDocumentId()), result[i]));
+				System.out.println(String.format("%2d. %-35s %s", i+1, documentCollection.getDirAndName(result[i].getDocumentId()), result[i]));
 			}
 
 			if(result.length == 0) {
@@ -307,7 +309,7 @@ public class SearchSystem {
 
 	private DocumentScore[] search(String searchQuery, Indexer indexer, Filter filter, int resultLength) {
 
-		LOGGER.logTime("START SEARCH");
+		LOGGER.logTime("Search...");
 
 		Parser parser = new Parser();
 		List<String> queryTerms = parser.parse(searchQuery);
@@ -316,7 +318,7 @@ public class SearchSystem {
 		Searcher searcher = new Searcher(indexer.getIndex());
 		DocumentScore[] scoreArray = searcher.searchCosineSimilarity(query, filter, resultLength);
 
-		LOGGER.logTime("SEARCH FINISHED");
+		LOGGER.logTime("Search finished");
 
 		DocumentScore[] shortScoreArray = new DocumentScore[Math.min(resultLength, scoreArray.length)];
 		for(int i = 0; i < shortScoreArray.length; i++) {
@@ -325,4 +327,28 @@ public class SearchSystem {
 
 		return shortScoreArray;
 	}
+
+	private static final String HELP_MESSAGE = ""+
+			"* (necessary) operation command\n"+
+			" ** -h ... help\n"+
+			" ** -i ... re-index document collection\n"+
+			" ** -s “query” ... search via free text query\n"+
+			" ** -t “topic-name” ... search via a specific topic\n"+
+			" ** -tp “run-name” ...  run topic processing over all indexed topics\n"+
+			"\n* (optional) index flag\n"+
+			" ** -bag ... user bag of words index (DEFAULT)\n"+
+			" ** -bi ... use bi-word index\n"+
+			"\n* (optional) filter flag\n"+
+			" ** -fc ... use “content filter” with threshold 50% (DEFAULT)\n"+
+			" ** -fc(30) ... use “content filter” with threshold 30% (value: 0-100)\n"+
+			" ** -fm ... use “minimum filter”\n"+
+			"\n* (optional) result length\n"+
+			" ** -r(20) ... show 20 search results (DEFAULT: 10) (value > 0)\n"+
+			"\n* examples:\n"+
+			" ** get best 15 results for query \"astronomy club sci space GPS uucp\" in bag of words index using the content filter with a threshold of 70%:\n"+
+			"       -s -fc(70) -r(15) astronomy club sci space GPS uucp\n"+
+			" ** get best 10 results for topic4 in bi-word index using the minimum filter:\n"+
+			"       -t -bi -fm topic4\n"+
+			" ** run topic processing with run-name “test” for bi-word index using conetent filter with a threshold of 50%:\n"+
+			"       -ta -bi test";
 }
