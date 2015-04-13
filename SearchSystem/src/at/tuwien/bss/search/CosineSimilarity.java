@@ -32,6 +32,10 @@ public class CosineSimilarity {
 			if (documentPosting == null) {
 				// term does not exist in index or document --> weighing is 0 and therefore
 				// is not considered in ConsineSimilarity
+				
+				//XXX bugfix --> TODO calculate euclidianLengthSumQuery only once for a query
+				double qw = queryPosting.getWeight();
+				euclidianLengthSumQuery += qw * qw;
 			}
 			else {
 				// Term exists in query and in document

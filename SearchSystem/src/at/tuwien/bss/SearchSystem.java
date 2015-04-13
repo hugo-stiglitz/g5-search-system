@@ -32,12 +32,18 @@ public class SearchSystem {
 	private static final String INDEX_BAG_CVS = "index_bag.csv";
 	private static final String INDEX_BI_CVS = "index_bi.csv";
 
-	private static final String FLAG_BAG = "bag";
-	private static final String FLAG_BI = "bi";
+	private static final String FLAG_HELP = "-h";
+	private static final String FLAG_INDEX = "-i";
+	private static final String FLAG_SEARCH = "-s";
+	private static final String FLAG_TOPIC = "-t";
 
-	private static final String FLAG_CONTENT = "fc";
-	private static final String FLAG_MINIMUM = "fm";
+	private static final String FLAG_BAG = "-bag";
+	private static final String FLAG_BI = "-bi";
 
+	private static final String FLAG_CONTENT = "-fc";
+	private static final String FLAG_MINIMUM = "-fm";
+
+	private static final double DEFAULT_FILTER_VALUE = 0.5d;
 
 	private DocumentCollection documentCollection = new DocumentCollection();
 	private DocumentCollection topicCollection = new DocumentCollection();
@@ -47,7 +53,7 @@ public class SearchSystem {
 	private Indexer indexerBi = new Indexer(new SegmenterBi());
 
 	private Map<String,Filter> filterMap = new HashMap<String,Filter>();
-	private Filter filterContent = new FilterContent(0.5);
+	private Filter filterContent = new FilterContent(DEFAULT_FILTER_VALUE);
 	private Filter filterMinimum = new FilterMinimum();
 
 	public static void main(String[] args) {
@@ -125,9 +131,6 @@ public class SearchSystem {
 		try {
 			indexerBoW.index(documentCollection, documentCollection.getCount());
 			indexerBi.index(documentCollection, documentCollection.getCount());
-
-			//indexerBoW.index(documentCollection, 200);
-			//indexerBi.index(documentCollection, 200);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -152,16 +155,23 @@ public class SearchSystem {
 			return;
 		}
 
+		// command "-h" for help
+		if(input[0].equals(FLAG_HELP)) {
+			//TODO show help
+			System.out.println("help: in progress");
+			return;
+		}
+
 		String searchQuery = "";
 
 		// command "-i" for new indexing
-		if(input[0].equals("-i")) {
+		if(input[0].equals(FLAG_INDEX)) {
 			this.index();
 			return;
 		}
 
 		// command "-t" for topic search
-		else if(input[0].equals("-t")) {
+		else if(input[0].equals(FLAG_TOPIC)) {
 
 			//TODO set flags
 			for(int i = 1; i < input.length; i++) {
@@ -177,7 +187,7 @@ public class SearchSystem {
 		}
 
 		// command "-s" for free text search
-		else if(input[0].equals("-s")) {
+		else if(input[0].equals(FLAG_SEARCH)) {
 
 			for(int i = 1; i < input.length; i++) {
 				String command = input[i];
@@ -200,8 +210,7 @@ public class SearchSystem {
 		for(int i = 1; i < input.length; i++) {
 			String fullCommand = input[i];
 			if(fullCommand.startsWith("-")) {
-				String command = fullCommand.substring(1, fullCommand.length());
-				command = command.split("[(]")[0];
+				String command = fullCommand.split("[(]")[0];
 
 				if(indexerMap.containsKey(command)) {
 					indexer = indexerMap.get(command);
@@ -212,8 +221,16 @@ public class SearchSystem {
 
 					Matcher m = numberPattern.matcher(fullCommand);
 					if(m.find()) {
-						double value = Double.valueOf(m.group());
-						filter.setValue(value / 100);
+						try {
+							double value = Double.valueOf(m.group());
+
+							if(value > 0 && value <= 100) {						
+								filter.setValue(value / 100);
+							}
+							
+						} catch(NumberFormatException e) {
+							filter.setValue(DEFAULT_FILTER_VALUE);
+						}
 					}
 				}
 			}
@@ -239,7 +256,9 @@ public class SearchSystem {
 
 		Parser parser = new Parser();
 		List<String> queryTerms = parser.parse(searchQuery);
-		Query query = new Query(indexer.getSegmenter().segment(queryTerms));
+		
+		List<String> tmp = indexer.getSegmenter().segment(queryTerms);
+		Query query = new Query(tmp);
 
 		Searcher searcher = new Searcher(indexer.getIndex());
 		DocumentScore[] scoreArray = searcher.searchCosineSimilarity(query, filter);
