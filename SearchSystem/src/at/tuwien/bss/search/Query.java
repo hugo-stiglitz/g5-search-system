@@ -49,6 +49,7 @@ public class Query implements Iterable<Entry<String, Posting>> {
 				// the temporary posting from the query is used (it is not added to the index
 				// but is used for the weight calculation)
 				
+				//XXX is this correct???
 				queryPosting.setWeight(weightingMethod.calculate(index, term, postingsList, queryPosting));
 			}
 		}

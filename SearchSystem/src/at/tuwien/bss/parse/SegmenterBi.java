@@ -4,28 +4,24 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class SegmenterBi implements Segmenter {
+	
+	private static final char DIVIDER = '$';
 
 	@Override
 	public List<String> segment(List<String> terms) {
 		
 		List<String> result = new ArrayList<String>();
 		
-		//first term			TODO macht ma des beim bi-word segmenten o so???
-		String firstTerm = "$";
-		String secondTerm = terms.get(0);
-		result.add(firstTerm + " " + secondTerm);
+		//first term
+		result.add(DIVIDER + terms.get(0));
 		
-		//2nd to n-1th term 
+		//2nd to n-1th term
 		for(int i = 0; i < terms.size() - 1; i++) {
-			firstTerm = terms.get(i);
-			secondTerm = terms.get(i+1);
-			result.add(firstTerm + " " + secondTerm);
+			result.add(terms.get(i) + DIVIDER + terms.get(i+1));
 		}
 		
 		//last term
-		firstTerm = terms.get(terms.size()-1);
-		secondTerm = "$";
-		result.add(firstTerm + " " + secondTerm);
+		result.add(terms.get(terms.size()-1) + DIVIDER);
 		
 		return result;
 	}
