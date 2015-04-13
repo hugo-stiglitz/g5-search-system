@@ -1,4 +1,6 @@
 /bin/
-SearchSystem/log/log.txt
+/log/
+/subset/
+/topics/
 *.csv
 *.dat
