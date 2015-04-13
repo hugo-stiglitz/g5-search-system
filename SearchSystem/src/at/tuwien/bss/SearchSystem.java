@@ -36,6 +36,7 @@ public class SearchSystem {
 	private static final String FLAG_INDEX = "-i";
 	private static final String FLAG_SEARCH = "-s";
 	private static final String FLAG_TOPIC = "-t";
+	private static final String FLAG_TOPIC_ALL = "-ta";
 
 	private static final String FLAG_BAG = "-bag";
 	private static final String FLAG_BI = "-bi";
@@ -44,6 +45,7 @@ public class SearchSystem {
 	private static final String FLAG_MINIMUM = "-fm";
 
 	private static final double DEFAULT_FILTER_VALUE = 0.5d;
+	private static final int DEFAULT_RESULT_LENGTH = 10;
 
 	private DocumentCollection documentCollection = new DocumentCollection();
 	private DocumentCollection topicCollection = new DocumentCollection();
@@ -53,7 +55,7 @@ public class SearchSystem {
 	private Indexer indexerBi = new Indexer(new SegmenterBi());
 
 	private Map<String,Filter> filterMap = new HashMap<String,Filter>();
-	private Filter filterContent = new FilterContent(DEFAULT_FILTER_VALUE);
+	private Filter filterContent = new FilterContent(DEFAULT_FILTER_VALUE, DEFAULT_RESULT_LENGTH);
 	private Filter filterMinimum = new FilterMinimum();
 
 	public static void main(String[] args) {
@@ -149,6 +151,8 @@ public class SearchSystem {
 	}
 
 	private void readCommand(String[] input) {
+		
+		LOGGER.setConsoleLogging(true);
 
 		if(input.length == 0) {
 			System.out.println("error: no command");
@@ -162,6 +166,8 @@ public class SearchSystem {
 			return;
 		}
 
+		boolean allTopics = false;
+		String runname = "";
 		String searchQuery = "";
 
 		// command "-i" for new indexing
@@ -173,7 +179,6 @@ public class SearchSystem {
 		// command "-t" for topic search
 		else if(input[0].equals(FLAG_TOPIC)) {
 
-			//TODO set flags
 			for(int i = 1; i < input.length; i++) {
 				String command = input[i];
 				if(!command.startsWith("-")) {
@@ -183,6 +188,15 @@ public class SearchSystem {
 						System.out.println("topic file not existing");
 					}
 				}
+			}
+		}
+
+		//command "-ta" for search of all topics
+		else if(input[0].equals(FLAG_TOPIC_ALL)) {
+			LOGGER.setConsoleLogging(false);
+			allTopics = true;
+			if(input.length > 1) {
+				runname = input[1];
 			}
 		}
 
@@ -202,6 +216,7 @@ public class SearchSystem {
 		}
 
 		//init default values
+		int resultLength = DEFAULT_RESULT_LENGTH;
 		Indexer indexer = indexerMap.get(FLAG_BAG);
 		Filter filter = filterMap.get(FLAG_CONTENT);
 
@@ -227,46 +242,85 @@ public class SearchSystem {
 							if(value > 0 && value <= 100) {						
 								filter.setValue(value / 100);
 							}
-							
+
 						} catch(NumberFormatException e) {
 							filter.setValue(DEFAULT_FILTER_VALUE);
+						}
+					}
+				}
+
+				if(command.equals("-r")) {
+					Matcher m = numberPattern.matcher(fullCommand);
+					if(m.find()) {
+						try {
+							int value = Integer.valueOf(m.group());
+
+							if(value > 0 && value <= documentCollection.getCount()) {						
+								resultLength = value;
+							}
+							else {
+								System.out.println("invalid result length parameter");
+							}
+
+						} catch(NumberFormatException e) {
+							System.out.println("invalid result length parameter");
 						}
 					}
 				}
 			}
 		}
 
-		DocumentScore[] result = search(searchQuery, indexer, filter);
-		for(int i = 0; i < result.length; i++) {
-			System.out.println(result[i] +" : "+ documentCollection.getName(result[i].getDocumentId()));
-		}
+		filter.setMinResultLength(resultLength);
 
-		if(result.length == 0) {
-			System.out.println("no search results");
+		if(allTopics) {
+			for(int i = 0; i < topicCollection.getCount(); i++) {
+				try {
+					searchQuery = topicCollection.getContent(i);
+					DocumentScore[] result = search(searchQuery, indexer, filter, resultLength);
+					for(int j = 0; j < result.length; j++) {
+						System.out.println(String.format("%-15s %2d. %-35s %-10s %s", topicCollection.getName(i) +":", j+1, documentCollection.getName(result[j].getDocumentId()), result[j], runname));
+					}
+				} catch (IOException e) {
+					System.out.println("unexpected error");
+				}
+			}
 		}
+		else {
+			if(searchQuery == null || searchQuery.equals("")) {
+				System.out.println("invalid search query");
+				return;
+			}
 
-		if(result.length > 0 && result.length < 10) {
-			System.out.println("warning: less than 10 search results available");
+			DocumentScore[] result = search(searchQuery, indexer, filter, resultLength);
+			for(int i = 0; i < result.length; i++) {
+				System.out.println(String.format("%2d. %-35s %s", i+1, documentCollection.getName(result[i].getDocumentId()), result[i]));
+			}
+
+			if(result.length == 0) {
+				System.out.println("no search results");
+			}
+
+			if(result.length > 0 && result.length < resultLength) {
+				System.out.println("warning: less than "+ resultLength +" search results available");
+			}
 		}
 	}
 
-	private DocumentScore[] search(String searchQuery, Indexer indexer, Filter filter) {
+	private DocumentScore[] search(String searchQuery, Indexer indexer, Filter filter, int resultLength) {
 
 		LOGGER.logTime("START SEARCH");
 
 		Parser parser = new Parser();
 		List<String> queryTerms = parser.parse(searchQuery);
-		
-		List<String> tmp = indexer.getSegmenter().segment(queryTerms);
-		Query query = new Query(tmp);
+		Query query = new Query(indexer.getSegmenter().segment(queryTerms));
 
 		Searcher searcher = new Searcher(indexer.getIndex());
-		DocumentScore[] scoreArray = searcher.searchCosineSimilarity(query, filter);
+		DocumentScore[] scoreArray = searcher.searchCosineSimilarity(query, filter, resultLength);
 
 		LOGGER.logTime("SEARCH FINISHED");
 
-		DocumentScore[] shortScoreArray = new DocumentScore[Math.min(10, scoreArray.length)];
-		for(int i = 0; i < Math.min(10, scoreArray.length); i++) {
+		DocumentScore[] shortScoreArray = new DocumentScore[Math.min(resultLength, scoreArray.length)];
+		for(int i = 0; i < shortScoreArray.length; i++) {
 			shortScoreArray[i] = scoreArray[i];
 		}
 

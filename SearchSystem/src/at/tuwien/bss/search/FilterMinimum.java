@@ -25,10 +25,14 @@ public class FilterMinimum implements Filter {
 		
 		return result;
 	}
+	
+	@Override
+	public void setMinResultLength(int resultLength) {
+		//do nothing
+	}
 
 	@Override
 	public void setValue(double value) {
 		//do nothing
 	}
-
 }

@@ -16,7 +16,7 @@ public class Searcher {
 		this.index = index;
 	}
 
-	public DocumentScore[] searchCosineSimilarity(Query query, Filter filter) {
+	public DocumentScore[] searchCosineSimilarity(Query query, Filter filter, int resultLength) {
 		
 		// weight the query terms with the index's weighting method
 		query.calculateWeighting(index, index.getWeightingMethod());
@@ -35,7 +35,7 @@ public class Searcher {
 		}
 		
 		LOGGER.logTime("Sorting...");
-		HeapSort.heapSort(scoreArray, Math.min(scoreArray.length-1, 10));
+		HeapSort.heapSort(scoreArray, Math.min(scoreArray.length-1, resultLength));
 		
 		return scoreArray;
 	}

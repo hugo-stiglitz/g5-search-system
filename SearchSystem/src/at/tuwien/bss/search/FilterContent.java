@@ -12,10 +12,12 @@ import at.tuwien.bss.index.PostingsList;
 public class FilterContent implements Filter {
 
 	private double threshold;
+	private int minResultLength;
 
-	public FilterContent(double threshold) {
+	public FilterContent(double threshold, int minResultLength) {
 
 		this.threshold = threshold;
+		this.minResultLength = minResultLength;
 	}
 
 	public Set<Integer> filter(Query query, Index index) {
@@ -41,7 +43,7 @@ public class FilterContent implements Filter {
 
 		Set<Integer> result = new HashSet<Integer>();
 
-		while(result.size() < 10 && documentQueryCount.size() >= 10) {
+		while(result.size() < minResultLength && documentQueryCount.size() >= minResultLength) {
 			for (Integer documentId : documentQueryCount.keySet()) {
 				if(documentQueryCount.get(documentId) >= query.size() * threshold) {
 					result.add(documentId);
@@ -51,6 +53,11 @@ public class FilterContent implements Filter {
 		}
 
 		return result;
+	}
+	
+	@Override
+	public void setMinResultLength(int resultLength) {
+		this.minResultLength = resultLength;
 	}
 	
 	@Override

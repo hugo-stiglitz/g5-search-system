@@ -11,6 +11,7 @@ import java.util.Date;
 public class SSLogger {
 	
 	private File logFile;
+	private boolean consoleLogging = true;
 	
 	private SSLogger() {
 		
@@ -51,12 +52,18 @@ public class SSLogger {
 	}
 	
 	private void write(String s) {
-		System.out.println(s);
+		
+		if(consoleLogging)
+			System.out.println(s);
 		
 		try(PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter(logFile, true)))) {
 		    out.println(s);
 		}catch (IOException e) {
 			e.printStackTrace();
 		}
+	}
+	
+	public void setConsoleLogging(boolean consoleLogging) {
+		this.consoleLogging = consoleLogging;
 	}
 }

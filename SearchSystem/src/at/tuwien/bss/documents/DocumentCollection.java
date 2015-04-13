@@ -55,6 +55,10 @@ public class DocumentCollection {
 	}
 	
 	public String getContent(String documentName) throws IOException {
+		
+		if(!documentIdNameMap.containsKey(documentName))
+			return null;
+		
 		return this.getContent(documentIdNameMap.get(documentName));
 	}
 }
