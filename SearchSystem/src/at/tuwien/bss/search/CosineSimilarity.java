@@ -33,7 +33,7 @@ public class CosineSimilarity {
 				// term does not exist in index or document --> weighing is 0 and therefore
 				// is not considered in ConsineSimilarity
 				
-				//XXX bugfix --> TODO calculate euclidianLengthSumQuery only once for a query
+				// however euclidian length of query has to be considered
 				double qw = queryPosting.getWeight();
 				euclidianLengthSumQuery += qw * qw;
 			}

@@ -129,8 +129,8 @@ public class SearchSystem {
 
 		LOGGER.logTime("Indexing...");
 		try {
-			indexerBoW.index(documentCollection, documentCollection.getCount());
-			indexerBi.index(documentCollection, documentCollection.getCount());
+			indexerBoW.index(documentCollection);
+			indexerBi.index(documentCollection);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -277,7 +277,8 @@ public class SearchSystem {
 					DocumentScore[] result = search(searchQuery, indexer, filter, resultLength);
 					for(int j = 0; j < result.length; j++) {
 						//System.out.println(String.format("%-15s %2d. %-35s %-10s %s", topicCollection.getName(i) +":", j+1, documentCollection.getName(result[j].getDocumentId()), result[j], runname));
-						//TODO what is Q0?
+						
+						//what does Q0 mean?
 						System.out.println(String.format(topicCollection.getName(i) +" Q0 "+  documentCollection.getDirAndName(result[j].getDocumentId()) +" "+ (j+1) +" "+ result[j] +" "+ runname));
 					}
 				} catch (IOException e) {
@@ -340,7 +341,7 @@ public class SearchSystem {
 			" ** -bi ... use bi-word index\n"+
 			"\n* (optional) filter flag\n"+
 			" ** -fc ... use \"content filter\" with threshold 50% (DEFAULT)\n"+
-			" ** -fc(30) ... use “content filter” with threshold 30% (value: 0-100)\n"+
+			" ** -fc(30) ... use \"content filter\" with threshold 30% (value: 0-100)\n"+
 			" ** -fm ... use \"minimum filter\"\n"+
 			"\n* (optional) result length\n"+
 			" ** -r(20) ... show 20 search results (DEFAULT: 10) (value > 0)\n"+

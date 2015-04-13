@@ -105,10 +105,6 @@ public class PostingsList implements Comparable<PostingsList>, Iterable<Posting>
 		return null;
 	}
 
-	public void createSkipList() {
-		//TODO create skip list after list is completed
-	}
-
 	public String print() {
 
 		StringBuilder sb = new StringBuilder();

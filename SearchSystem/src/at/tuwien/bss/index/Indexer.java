@@ -22,16 +22,14 @@ public class Indexer {
 	/**
 	 * Index a DocumentCollection.
 	 * @param collection
-	 * @param max Maximum Number of Documents to index (for test purposes TODO remove)
 	 * @throws IOException
 	 */
-	public void index(DocumentCollection collection, int max) throws IOException {
+	public void index(DocumentCollection collection) throws IOException {
 		
 		this.index = new Index();
 		Parser parser = new Parser();
 				
-		int count = Math.min(collection.getCount(), max);
-		for (int documentId=0; documentId<count; documentId++) {
+		for (int documentId=0; documentId < collection.getCount(); documentId++) {
 			
 			// get content, parse and segment
 			String document = collection.getContent(documentId);
@@ -44,12 +42,12 @@ public class Indexer {
 			}
 		}
 		
-		index.setDocumentCount(count);
+		index.setDocumentCount(collection.getCount());
 		
 		// calculate the Tf-Idf Weighting
 		index.calculateWeighting(new WeightingTfIdf());
 		
-		LOGGER.logTime("indexed "+count+" documents");
+		LOGGER.logTime("indexed "+ collection.getCount() +" documents");
 	}
 	
 	public Index getIndex() {
