@@ -12,7 +12,7 @@ public class Indexer {
 	
 	private static final SSLogger LOGGER = SSLogger.getLogger();
 	
-	private Index index = new Index();
+	private Index index = null;
 	private Segmenter segmenter;
 	
 	public Indexer(Segmenter segmenter) {
@@ -27,6 +27,7 @@ public class Indexer {
 	 */
 	public void index(DocumentCollection collection, int max) throws IOException {
 		
+		this.index = new Index();
 		Parser parser = new Parser();
 				
 		int count = Math.min(collection.getCount(), max);
