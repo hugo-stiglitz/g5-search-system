@@ -135,10 +135,10 @@ public class SearchSystem {
 		LOGGER.logTime("Export...");
 		try {
 			indexerBoW.getIndex().save(INDEX_BAG_DAT);
-			indexerBoW.getIndex().exportCsv(INDEX_BAG_CVS);
+			//indexerBoW.getIndex().exportCsv(INDEX_BAG_CVS);
 
 			indexerBi.getIndex().save(INDEX_BI_DAT);
-			indexerBi.getIndex().exportCsv(INDEX_BI_CVS);
+			//indexerBi.getIndex().exportCsv(INDEX_BI_CVS);
 
 		} catch(IOException e) {
 			LOGGER.log("error exporting data-files");
