@@ -193,8 +193,12 @@ public class SearchSystem {
 		else if(input[0].equals(FLAG_TOPIC_ALL)) {
 			LOGGER.setConsoleLogging(false);
 			topicProcessing = true;
-			if(input.length > 1) {
-				runname = input[1];
+			for (int i = 1; i < input.length; i++) {
+				String command = input[i];
+				if (!command.startsWith("-")) {
+					runname = command;
+					break;
+				}
 			}
 		}
 

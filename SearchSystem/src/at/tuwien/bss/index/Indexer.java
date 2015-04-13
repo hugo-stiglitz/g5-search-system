@@ -28,7 +28,7 @@ public class Indexer {
 		
 		this.index = new Index();
 		Parser parser = new Parser();
-				
+			
 		for (int documentId=0; documentId < collection.getCount(); documentId++) {
 			
 			// get content, parse and segment
@@ -48,6 +48,8 @@ public class Indexer {
 		index.calculateWeighting(new WeightingTfIdf());
 		
 		LOGGER.logTime("indexed "+ collection.getCount() +" documents");
+		
+		System.gc();
 	}
 	
 	public Index getIndex() {
