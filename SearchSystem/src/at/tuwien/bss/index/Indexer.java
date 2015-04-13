@@ -55,9 +55,7 @@ public class Indexer {
 		return index;
 	}
 	
-	public void loadIndex(Index index, DocumentCollection documentCollection) {
-		index.setDocumentCount(documentCollection.getCount());
-		index.calculateWeighting(new WeightingTfIdf());
+	public void setIndex(Index index) {
 		this.index = index;
 	}
 	
