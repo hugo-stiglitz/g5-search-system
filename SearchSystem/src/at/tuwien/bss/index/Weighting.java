@@ -1,6 +1,8 @@
 package at.tuwien.bss.index;
 
-public interface Weighting {
+import java.io.Serializable;
+
+public interface Weighting extends Serializable {
 	
 	public float calculate(Index index, String term, PostingsList postingList, Posting posting);
 }

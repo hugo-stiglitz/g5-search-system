@@ -112,6 +112,12 @@ public class Index {
 		
 			// write term count
 			outputStream.writeInt(indexMap.size());
+			
+			// write document count
+			outputStream.writeInt(getDocumentCount());
+			
+			// write weighting method
+			outputStream.writeObject(getWeightingMethod());
 					
 			for (Entry<String,PostingsList> entry : indexMap.entrySet()) {
 				String term = entry.getKey();
@@ -140,7 +146,7 @@ public class Index {
 		}
 	}
 	
-	public void load(String filename) throws FileNotFoundException, IOException {
+	public void load(String filename) throws FileNotFoundException, IOException, ClassNotFoundException {
 		ObjectInputStream inputStream = null;
 		
 		try {
@@ -150,6 +156,12 @@ public class Index {
 			int termCount = inputStream.readInt();
 			
 			indexMap = new HashMap<String, PostingsList>(termCount);
+			
+			// read document count
+			setDocumentCount(inputStream.readInt());
+			
+			// read weighting method
+			this.weightingMethod = (Weighting)inputStream.readObject();
 			
 			for (int ti=0; ti<termCount; ti++) {
 				// read term
