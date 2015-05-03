@@ -60,6 +60,9 @@ public class Lucene {
 		
 		// delete index if already exists
 		if (Files.exists(indexDirectoryPath)) {
+			for(String file : indexDirectory.listAll()) {
+				indexDirectory.deleteFile(file);
+			}
 			Files.delete(indexDirectoryPath);
 		}
 		
