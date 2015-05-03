@@ -17,15 +17,13 @@ public class BM25LSimilarity extends Similarity {
 	}
 
 	@Override
-	public SimWeight computeWeight(float queryBoost,
-			CollectionStatistics collectionStats, TermStatistics... termStats) {
+	public SimWeight computeWeight(float queryBoost, CollectionStatistics collectionStats, TermStatistics... termStats) {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	public SimScorer simScorer(SimWeight weight, LeafReaderContext context)
-			throws IOException {
+	public SimScorer simScorer(SimWeight weight, LeafReaderContext context) throws IOException {
 		// TODO Auto-generated method stub
 		return null;
 	}
