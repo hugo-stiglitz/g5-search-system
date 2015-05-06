@@ -189,7 +189,7 @@ public class SearchSystem {
 			}
 		}
 
-		// command "-ta" for search of all topics
+		// command "-tp" for search of all topics
 		else if(input[0].equals(FLAG_TOPIC_ALL)) {
 			LOGGER.setConsoleLogging(false);
 			topicProcessing = true;

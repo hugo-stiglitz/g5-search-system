@@ -41,6 +41,7 @@ public class Lucene {
 	private static final Logger LOGGER = Logger.getLogger();
 	
 	public static final String PATH_DOCUMENTS = ".\\..\\..\\subset";
+	public static final String PATH_TOPICS = ".\\..\\..\\topics";
 	public static final String PATH_INDEX = ".\\index\\";
 
 	public static final String FIELD_NAME = "name";
@@ -56,6 +57,8 @@ public class Lucene {
 	private Path indexDirectoryPath;
 	private Directory indexDirectory;
 	private Analyzer analyzer;
+	
+	private DocumentCollection topicCollection = new DocumentCollection();
 	
 	private void createIndex() throws IOException {
 		
@@ -87,25 +90,43 @@ public class Lucene {
 		
 		//indexWriter.optimize();
 		indexWriter.close();
+		
+		// Load Topics
+		topicCollection.importFolder(PATH_TOPICS);
 	}
 	
 	private void searchIndex() throws IOException, ParseException {
 		
 		DirectoryReader indexReader = DirectoryReader.open(indexDirectory);
 	    IndexSearcher indexSearcher = new IndexSearcher(indexReader);
-	    indexSearcher.setSimilarity(new BM25LSimilarity());
+	    indexSearcher.setSimilarity(new BM25Similarity());
 	    
-	    // Parse a simple query that searches for "text":
-	    QueryParser parser = new QueryParser(FIELD_CONTENTS, analyzer);
-	    Query query = parser.parse("astronomy club sci space GPS uucp");
-	    ScoreDoc[] hits = indexSearcher.search(query, 15).scoreDocs;
+	    String runname = "g5run";
 	    
-	    // Iterate through the results:
-	    for (ScoreDoc scoreDoc : hits) {
-	    	Document hitDoc = indexSearcher.doc(scoreDoc.doc);
+	    for (int i = 0; i < topicCollection.getCount(); i++) {
 	    	
-	    	System.out.println(hitDoc.get(FIELD_NAME));
+	    	
+		    // Parse a simple query that searches for "text":
+		    QueryParser parser = new QueryParser(FIELD_CONTENTS, analyzer);
+		    String topicContent = topicCollection.getContent(i);
+		    
+		    topicContent = topicContent.replaceAll("[\\+\\-\\&\\|\\!\\(\\)\\{\\}\\[\\]\\^\\\\\\\"~\\*\\?\\:/]", " ");
+		    
+		    Query query = parser.parse(topicContent);
+		    ScoreDoc[] hits = indexSearcher.search(query, 10).scoreDocs;
+		    
+		    
+		    // Iterate through the results:
+		    int j = 1;
+		    for (ScoreDoc scoreDoc : hits) {
+		    	Document hitDoc = indexSearcher.doc(scoreDoc.doc);
+		    	
+		    	System.out.println(String.format(topicCollection.getName(i) +" Q0 "+  hitDoc.get(FIELD_NAME) +" "+ (j+1) +" "+ scoreDoc.score +" "+ runname));
+		    	j++;
+			}
+			
 		}
+
 
 	    indexReader.close();
 	}
