@@ -23,6 +23,7 @@ import org.apache.lucene.search.similarities.BM25Similarity;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
 
+import at.tuwien.lucene.bm25l.BM25LSimilarity;
 import at.tuwien.lucene.documents.DocumentCollection;
 import at.tuwien.lucene.logging.Logger;
 
@@ -92,11 +93,11 @@ public class Lucene {
 		
 		DirectoryReader indexReader = DirectoryReader.open(indexDirectory);
 	    IndexSearcher indexSearcher = new IndexSearcher(indexReader);
-	    indexSearcher.setSimilarity(new BM25Similarity());
+	    indexSearcher.setSimilarity(new BM25LSimilarity());
 	    
 	    // Parse a simple query that searches for "text":
 	    QueryParser parser = new QueryParser(FIELD_CONTENTS, analyzer);
-	    Query query = parser.parse("text");
+	    Query query = parser.parse("astronomy club sci space GPS uucp");
 	    ScoreDoc[] hits = indexSearcher.search(query, 15).scoreDocs;
 	    
 	    // Iterate through the results:
