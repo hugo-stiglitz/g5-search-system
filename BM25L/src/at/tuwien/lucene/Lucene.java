@@ -99,9 +99,9 @@ public class Lucene {
 		
 		DirectoryReader indexReader = DirectoryReader.open(indexDirectory);
 	    IndexSearcher indexSearcher = new IndexSearcher(indexReader);
-	    indexSearcher.setSimilarity(new BM25Similarity());
+	    indexSearcher.setSimilarity(new BM25LSimilarity());
 	    
-	    String runname = "g5run";
+	    String runname = "run_bm25L";
 	    
 	    for (int i = 0; i < topicCollection.getCount(); i++) {
 	    	
