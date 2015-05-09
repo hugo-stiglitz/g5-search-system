@@ -13,11 +13,7 @@ import org.apache.lucene.util.BytesRef;
 import org.apache.lucene.util.SmallFloat;
 
 /**
- * BM25 Similarity. Introduced in Stephen E. Robertson, Steve Walker,
- * Susan Jones, Micheline Hancock-Beaulieu, and Mike Gatford. Okapi at TREC-3.
- * In Proceedings of the Third <b>T</b>ext <b>RE</b>trieval <b>C</b>onference (TREC 1994).
- * Gaithersburg, USA, November 1994.
- * @lucene.experimental
+ * BM25L Similarity. 
  */
 public class BM25LSimilarity extends Similarity {
 	private final float k1;
@@ -28,18 +24,31 @@ public class BM25LSimilarity extends Similarity {
 	 * BM25 with the supplied parameter values.
 	 * @param k1 Controls non-linear term frequency normalization (saturation).
 	 * @param b Controls to what degree document length normalizes tf values.
+	 * @param delta BM25L parameter to boost long documents
 	 */
 	public BM25LSimilarity(float k1, float b, float delta) {
 		this.k1 = k1;
 		this.b  = b;
 		this.delta = delta;
 	}
-
-	/** BM25 with these default values:
+	
+	/** BM25L with these default values:
 	 * <ul>
-	 *   <li>{@code k1 = 1.2},
-	 *   <li>{@code b = 0.75}.</li>
-	 *   <li>{@code delta = 0.5}.</li>
+	 *   <li>{@code k1 = 1.2}</li>
+	 *   <li>{@code b = 0.75}</li>
+	 * </ul>
+	 */
+	public BM25LSimilarity(float delta) {
+		this.k1 = 1.2f;
+		this.b  = 0.75f;
+		this.delta = delta;
+	}
+
+	/** BM25L with these default values:
+	 * <ul>
+	 *   <li>{@code k1 = 1.2}</li>
+	 *   <li>{@code b = 0.75}</li>
+	 *   <li>{@code delta = 0.5}</li>
 	 * </ul>
 	 */
 	public BM25LSimilarity() {
@@ -194,8 +203,8 @@ public class BM25LSimilarity extends Similarity {
 	}
 
 	@Override
-	public final SimScorer simScorer(SimWeight stats, LeafReaderContext context) throws IOException {
-		BM25LStats bm25stats = (BM25LStats) stats;
+	public final SimScorer simScorer(SimWeight weight, LeafReaderContext context) throws IOException {
+		BM25LStats bm25stats = (BM25LStats) weight;
 		return new BM25LDocScorer(bm25stats, context.reader().getNormValues(bm25stats.field));
 	}
 
@@ -212,14 +221,13 @@ public class BM25LSimilarity extends Similarity {
 
 		@Override
 		public float score(int doc, float freq) {
-			// if there are no norms, we act as if b=0
-
 			// BM25L Score function
+			// normalized term frequency: c'(q,D) = c(q,D) / (1 - b + b * |D|/avdl)
+			float normalizedFreq = freq / (1 - b + b * doc / stats.avgdl);
 
-			float cS = freq / (1 - b + b * doc / stats.avgdl);
-
-			if (cS > 0) {
-				return (k1 + 1) * (cS+delta) / (k1 + (cS + delta));
+			if (normalizedFreq > 0) {
+				// idf * ((k1 +1) * [c' + delta]) / (k1 + [c' + delta])
+				return weightValue * (normalizedFreq + delta) / (k1 + (normalizedFreq + delta));
 			}
 			else {
 				return 0;
@@ -296,13 +304,18 @@ public class BM25LSimilarity extends Similarity {
 		tfNormExpl.addDetail(new Explanation(k1, "parameter k1"));
 		if (norms == null) {
 			tfNormExpl.addDetail(new Explanation(0, "parameter b (norms omitted for field)"));
-			tfNormExpl.setValue((freq.getValue() * (k1 + 1)) / (freq.getValue() + k1));
+			
+			// additional delta parameter
+			tfNormExpl.setValue(((freq.getValue() + delta) * (k1 + 1)) / (freq.getValue() + k1));
 		} else {
 			float doclen = decodeNormValue((byte)norms.get(doc));
 			tfNormExpl.addDetail(new Explanation(b, "parameter b"));
 			tfNormExpl.addDetail(new Explanation(stats.avgdl, "avgFieldLength"));
 			tfNormExpl.addDetail(new Explanation(doclen, "fieldLength"));
-			tfNormExpl.setValue((freq.getValue() * (k1 + 1)) / (freq.getValue() + k1 * (1 - b + b * doclen/stats.avgdl)));
+			
+			//additional delta parameter
+			float normalizedFreq = freq.getValue() / (1 - b + b * doclen/stats.avgdl);
+			tfNormExpl.setValue(((normalizedFreq + delta) * (k1 + 1)) / (k1 + (normalizedFreq + delta)));
 		}
 		result.addDetail(tfNormExpl);
 		result.setValue(boostExpl.getValue() * stats.idf.getValue() * tfNormExpl.getValue());
@@ -330,4 +343,3 @@ public class BM25LSimilarity extends Similarity {
 		return b;
 	}
 }
-
