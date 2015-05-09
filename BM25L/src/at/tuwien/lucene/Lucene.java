@@ -40,9 +40,15 @@ public class Lucene {
 	
 	private static final Logger LOGGER = Logger.getLogger();
 	
+	/** WINDOOF **/
 	public static final String PATH_DOCUMENTS = ".\\..\\..\\subset";
 	public static final String PATH_TOPICS = ".\\..\\..\\topics";
 	public static final String PATH_INDEX = ".\\index\\";
+	/** UBUNTU **/
+	//public static final String PATH_DOCUMENTS = "./../../subset";
+	//public static final String PATH_TOPICS = "./../../topics";
+	//public static final String PATH_INDEX = "./index/";
+	
 
 	public static final String FIELD_NAME = "name";
 	public static final String FIELD_CONTENTS = "contents";

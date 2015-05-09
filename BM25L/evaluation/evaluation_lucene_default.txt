@@ -1,0 +1,19 @@
+map                   	topic1	0.0507
+map                   	topic10	0.5000
+map                   	topic11	0.0510
+map                   	topic13	0.1942
+map                   	topic14	0.3143
+map                   	topic15	0.2227
+map                   	topic16	0.3423
+map                   	topic17	0.2571
+map                   	topic18	0.4185
+map                   	topic19	0.6667
+map                   	topic2	0.1658
+map                   	topic3	0.3924
+map                   	topic4	0.5000
+map                   	topic5	0.4750
+map                   	topic6	0.0000
+map                   	topic7	0.3108
+map                   	topic9	0.0833
+map                   	all	0.2909
+
