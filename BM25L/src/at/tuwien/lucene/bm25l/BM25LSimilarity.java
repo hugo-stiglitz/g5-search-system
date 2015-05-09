@@ -129,7 +129,6 @@ public class BM25LSimilarity extends Similarity {
 		}
 	}
 
-
 	@Override
 	public final long computeNorm(FieldInvertState state) {
 		final int numTerms = discountOverlaps ? state.getLength() - state.getNumOverlap() : state.getLength();
@@ -223,11 +222,15 @@ public class BM25LSimilarity extends Similarity {
 		public float score(int doc, float freq) {
 			// BM25L Score function
 			// normalized term frequency: c'(q,D) = c(q,D) / (1 - b + b * |D|/avdl)
-			float normalizedFreq = freq / (1 - b + b * doc / stats.avgdl);
-
+			
+			
+			float docLength = decodeNormValue((byte)norms.get(doc));
+			
+			float normalizedFreq = freq / (1 - b + b * docLength / stats.avgdl);
+			
 			if (normalizedFreq > 0) {
 				// idf * ((k1 +1) * [c' + delta]) / (k1 + [c' + delta])
-				return weightValue * (normalizedFreq + delta) / (k1 + (normalizedFreq + delta));
+				return stats.idf.getValue() * (k1+1) * (normalizedFreq + delta) / (k1 + (normalizedFreq + delta));
 			}
 			else {
 				return 0;
