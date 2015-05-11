@@ -46,7 +46,7 @@ public class Lucene {
 				LOGGER.log("done.");
 			}
 			else if (a.equals("-explain")) {
-				lucene.explain(new BM25LSimilarity());
+				lucene.explainQueryScoring(new BM25LSimilarity());
 			}
 			else if (a.equals("-default")) {
 				lucene.searchIndex(new DefaultSimilarity(), "run_default");
@@ -159,41 +159,23 @@ public class Lucene {
 
 	    }
 
-	    
 	    indexReader.close();
 	}
 	
-	public void explain(Similarity similarity) throws IOException, ParseException {
+	private void explainQueryScoring(Similarity similarity) throws IOException, ParseException {
 		DirectoryReader indexReader = DirectoryReader.open(indexDirectory);
 	    IndexSearcher indexSearcher = new IndexSearcher(indexReader);
 	    indexSearcher.setSimilarity(similarity);
-	    
-	    QueryParser parser = new QueryParser(FIELD_CONTENTS, analyzer);
-	    
-	    Query query = parser.parse("test query");
-	    ScoreDoc[] hits = indexSearcher.search(query, 10).scoreDocs;
-	    
-	    int j=0;
-	    for (ScoreDoc scoreDoc : hits) {
-	    	Document hitDoc = indexSearcher.doc(scoreDoc.doc);
-	    	
-	    	String output = String.format("query" +" Q0 "+  hitDoc.get(FIELD_NAME) +" "+ (j+1) +" "+ scoreDoc.score +" "+ "explain-query");
-	    	System.out.println(output);
-	    	System.out.println(indexSearcher.explain(query, scoreDoc.doc).toString());
-	    	
-	    	j++;
-		}
-	    
-	    indexReader.close();
-	}
-	
-	private void explainQueryScoring(IndexSearcher indexSearcher) throws IOException, ParseException {
 		
 	    QueryParser parser = new QueryParser(FIELD_CONTENTS, analyzer);
-	    Query query = parser.parse("Lucene Similarity");
+	    Query query = parser.parse("test query");
 	    ScoreDoc[] hits = indexSearcher.search(query, 2).scoreDocs;
 	    
+	    int j = 0;
 	    for (ScoreDoc scoreDoc : hits) {
+	    	Document hitDoc = indexSearcher.doc(scoreDoc.doc);
+	    	String output = String.format("query" +" Q0 "+  hitDoc.get(FIELD_NAME) +" "+ (j+1) +" "+ scoreDoc.score +" "+ "explain-query");
+	    	System.out.println(output);
 	    	System.out.println(indexSearcher.explain(query, scoreDoc.doc));
 	    }
 	}
