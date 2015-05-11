@@ -295,34 +295,26 @@ public class BM25LSimilarity extends Similarity {
 		Explanation result = new Explanation();
 		result.setDescription("score(doc="+doc+",freq="+freq+"), product of:");
 
-		Explanation boostExpl = new Explanation(stats.queryBoost * stats.topLevelBoost, "boost");
-		if (boostExpl.getValue() != 1.0f)
-			result.addDetail(boostExpl);
-
 		result.addDetail(stats.idf);
-
+		
 		Explanation tfNormExpl = new Explanation();
 		tfNormExpl.setDescription("tfNorm, computed from:");
 		tfNormExpl.addDetail(freq);
 		tfNormExpl.addDetail(new Explanation(k1, "parameter k1"));
-		tfNormExpl.addDetail(new Explanation(delta, "parameter delta"));
-		if (norms == null) {
-			tfNormExpl.addDetail(new Explanation(0, "parameter b (norms omitted for field)"));
+		tfNormExpl.addDetail(new Explanation(delta, "parameter delta"));	
+		tfNormExpl.addDetail(new Explanation(b, "parameter b"));
+		tfNormExpl.addDetail(new Explanation(stats.avgdl, "avgDocumentLength"));
+		float docLength = decodeNormValue((byte)norms.get(doc));
+		tfNormExpl.addDetail(new Explanation(docLength, "documentLength"));
 			
-			// additional delta parameter
-			tfNormExpl.setValue(((freq.getValue() + delta) * (k1 + 1)) / (freq.getValue() + k1));
-		} else {
-			float doclen = decodeNormValue((byte)norms.get(doc));
-			tfNormExpl.addDetail(new Explanation(b, "parameter b"));
-			tfNormExpl.addDetail(new Explanation(stats.avgdl, "avgFieldLength"));
-			tfNormExpl.addDetail(new Explanation(doclen, "fieldLength"));
-			
-			//additional delta parameter
-			float normalizedFreq = freq.getValue() / (1 - b + b * doclen/stats.avgdl);
-			tfNormExpl.setValue(((normalizedFreq + delta) * (k1 + 1)) / (k1 + (normalizedFreq + delta)));
-		}
+		//additional delta parameter
+		float cS = freq.getValue() / (1 - b + b * docLength/stats.avgdl);
+		float normalizedFreq = (k1+1) * (cS + delta) / (k1 + (cS + delta));
+		
+		tfNormExpl.setValue(normalizedFreq);
+		
 		result.addDetail(tfNormExpl);
-		result.setValue(boostExpl.getValue() * stats.idf.getValue() * tfNormExpl.getValue());
+		result.setValue(stats.idf.getValue() * tfNormExpl.getValue());
 		return result;
 	}
 
