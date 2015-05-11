@@ -20,6 +20,8 @@ import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.similarities.BM25Similarity;
+import org.apache.lucene.search.similarities.DefaultSimilarity;
+import org.apache.lucene.search.similarities.Similarity;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
 
@@ -31,11 +33,29 @@ public class Lucene {
 	public static void main(String[] args) throws IOException, ParseException {
 		Lucene lucene = new Lucene();
 
-		LOGGER.log("create index...");
-		lucene.createIndex();
-
-		LOGGER.log("search...");
-		lucene.searchIndex();
+		if (args.length == 0) {
+			LOGGER.log("no arguments");
+		}
+		
+		for (String a : args) {
+			if (a.equals("-index")) {
+				LOGGER.log("creating index...");
+				lucene.createIndex();
+				LOGGER.log("done.");
+			}
+			else if (a.equals("-default")) {
+				lucene.searchIndex(new DefaultSimilarity(), "run_default");
+			}
+			else if (a.equals("-bm25")) {
+				lucene.searchIndex(new BM25Similarity(), "run_bm25");
+			}
+			else if (a.equals("-bm25l")) {
+				lucene.searchIndex(new BM25LSimilarity(), "run_bm25l");
+			}
+			else {
+				LOGGER.log("unknown argument \""+a+"\"");
+			}
+		}
 	}
 	
 	private static final Logger LOGGER = Logger.getLogger();
@@ -101,13 +121,11 @@ public class Lucene {
 		topicCollection.importFolder(PATH_TOPICS);
 	}
 	
-	private void searchIndex() throws IOException, ParseException {
+	private void searchIndex(Similarity similarity, String runname) throws IOException, ParseException {
 		
 		DirectoryReader indexReader = DirectoryReader.open(indexDirectory);
 	    IndexSearcher indexSearcher = new IndexSearcher(indexReader);
-	    indexSearcher.setSimilarity(new BM25LSimilarity());
-	    
-	    String runname = "run_bm25L";
+	    indexSearcher.setSimilarity(similarity);
 	    
 	    for (int i = 0; i < topicCollection.getCount(); i++) {
 	    	
