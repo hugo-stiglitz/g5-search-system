@@ -157,9 +157,9 @@ public class Lucene {
 		    	j++;
 			}
 
-		}
+	    }
 
-
+	    
 	    indexReader.close();
 	}
 	
@@ -185,5 +185,16 @@ public class Lucene {
 		}
 	    
 	    indexReader.close();
+	}
+	
+	private void explainQueryScoring(IndexSearcher indexSearcher) throws IOException, ParseException {
+		
+	    QueryParser parser = new QueryParser(FIELD_CONTENTS, analyzer);
+	    Query query = parser.parse("Lucene Similarity");
+	    ScoreDoc[] hits = indexSearcher.search(query, 2).scoreDocs;
+	    
+	    for (ScoreDoc scoreDoc : hits) {
+	    	System.out.println(indexSearcher.explain(query, scoreDoc.doc));
+	    }
 	}
 }

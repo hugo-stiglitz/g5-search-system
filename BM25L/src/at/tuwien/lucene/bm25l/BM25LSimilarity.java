@@ -305,6 +305,7 @@ public class BM25LSimilarity extends Similarity {
 		tfNormExpl.setDescription("tfNorm, computed from:");
 		tfNormExpl.addDetail(freq);
 		tfNormExpl.addDetail(new Explanation(k1, "parameter k1"));
+		tfNormExpl.addDetail(new Explanation(delta, "parameter delta"));
 		if (norms == null) {
 			tfNormExpl.addDetail(new Explanation(0, "parameter b (norms omitted for field)"));
 			
