@@ -37,11 +37,16 @@ public class Lucene {
 			LOGGER.log("no arguments");
 		}
 		
-		for (String a : args) {
+		for (int i=0; i<args.length; i++) {
+			String a = args[i];
+			
 			if (a.equals("-index")) {
 				LOGGER.log("creating index...");
 				lucene.createIndex();
 				LOGGER.log("done.");
+			}
+			else if (a.equals("-explain")) {
+				lucene.explain(new BM25LSimilarity());
 			}
 			else if (a.equals("-default")) {
 				lucene.searchIndex(new DefaultSimilarity(), "run_default");
@@ -78,6 +83,9 @@ public class Lucene {
 		indexDirectoryPath = FileSystems.getDefault().getPath(PATH_INDEX);
 		indexDirectory = FSDirectory.open(indexDirectoryPath);
 		analyzer = new StandardAnalyzer();
+		
+		// Load Topics
+		topicCollection.importFolder(PATH_TOPICS);
 	}
 	
 	private Path indexDirectoryPath;
@@ -116,9 +124,6 @@ public class Lucene {
 		
 		//indexWriter.optimize();
 		indexWriter.close();
-		
-		// Load Topics
-		topicCollection.importFolder(PATH_TOPICS);
 	}
 	
 	private void searchIndex(Similarity similarity, String runname) throws IOException, ParseException {
@@ -142,16 +147,43 @@ public class Lucene {
 		    
 		    // Iterate through the results:
 		    int j = 1;
+		    
 		    for (ScoreDoc scoreDoc : hits) {
 		    	Document hitDoc = indexSearcher.doc(scoreDoc.doc);
 		    	
-		    	System.out.println(String.format(topicCollection.getName(i) +" Q0 "+  hitDoc.get(FIELD_NAME) +" "+ (j+1) +" "+ scoreDoc.score +" "+ runname));
+		    	String output = String.format(topicCollection.getName(i) +" Q0 "+  hitDoc.get(FIELD_NAME) +" "+ (j+1) +" "+ scoreDoc.score +" "+ runname);
+		    	System.out.println(output);
+		    	
 		    	j++;
 			}
-			
+
 		}
 
 
+	    indexReader.close();
+	}
+	
+	public void explain(Similarity similarity) throws IOException, ParseException {
+		DirectoryReader indexReader = DirectoryReader.open(indexDirectory);
+	    IndexSearcher indexSearcher = new IndexSearcher(indexReader);
+	    indexSearcher.setSimilarity(similarity);
+	    
+	    QueryParser parser = new QueryParser(FIELD_CONTENTS, analyzer);
+	    
+	    Query query = parser.parse("test query");
+	    ScoreDoc[] hits = indexSearcher.search(query, 10).scoreDocs;
+	    
+	    int j=0;
+	    for (ScoreDoc scoreDoc : hits) {
+	    	Document hitDoc = indexSearcher.doc(scoreDoc.doc);
+	    	
+	    	String output = String.format("query" +" Q0 "+  hitDoc.get(FIELD_NAME) +" "+ (j+1) +" "+ scoreDoc.score +" "+ "explain-query");
+	    	System.out.println(output);
+	    	System.out.println(indexSearcher.explain(query, scoreDoc.doc).toString());
+	    	
+	    	j++;
+		}
+	    
 	    indexReader.close();
 	}
 }
